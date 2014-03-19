@@ -7,6 +7,7 @@
 #import "LSCollectionViewHelper.h"
 #import "UICollectionViewLayout_Warpable.h"
 #import "UICollectionViewDataSource_Draggable.h"
+#import "UICollectionViewDataSource_ExternalTarget.h"
 #import "LSCollectionViewLayoutHelper.h"
 #import <QuartzCore/QuartzCore.h>
 
@@ -38,6 +39,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     BOOL canWarp;
     BOOL canScroll;
 	BOOL _hasShouldAlterTranslationDelegateMethod;
+    BOOL inTarget;
 }
 @property (readonly, nonatomic) LSCollectionViewLayoutHelper *layoutHelper;
 @end
@@ -65,6 +67,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                                       initWithTarget:self action:@selector(handlePanGesture:)];
         _panPressGestureRecognizer.delegate = self;
 		
+        // Support for UICollectionView_ExternalTarget
+        inTarget = NO;
+        
         [_collectionView addGestureRecognizer:_panPressGestureRecognizer];
         
         for (UIGestureRecognizer *gestureRecognizer in _collectionView.gestureRecognizers) {
@@ -261,6 +266,10 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             if(self.layoutHelper.fromIndexPath == nil) {
                 return;
             }
+            
+            // special case for the external target view, if supported
+            if (inTarget) self.layoutHelper.toIndexPath = self.layoutHelper.fromIndexPath;
+            
             // Tell the data source to move the item
             [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
 																				 moveItemAtIndexPath:self.layoutHelper.fromIndexPath
@@ -291,6 +300,23 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             // Reset
             [self invalidatesScrollTimer];
             lastIndexPath = nil;
+            
+            // special case for the external target view, if supported
+            if ([self.collectionView.dataSource
+                 conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
+            {
+                id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+                UIView *targetView = [delegate externalTargetView];
+                CGPoint pt = [sender locationInView:self.collectionView.superview];
+                
+                if (CGRectContainsPoint(targetView.frame, pt))
+                {
+                    [delegate collectionView:self.collectionView didHitTarget:YES];
+                    
+                    // all done for now
+                    inTarget = NO;
+                }
+            }
         } break;
         default: break;
     }
@@ -325,6 +351,32 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 			[(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView alterTranslation:&fingerTranslation];
 		}
         mockCell.center = _CGPointAdd(mockCenter, fingerTranslation);
+        
+        // special case for the external target view, if supported
+        if ([self.collectionView.dataSource
+             conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
+        {
+            id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+            UIView *targetView = [delegate externalTargetView];
+            CGPoint pt = [sender locationInView:self.collectionView.superview];
+            
+            if (CGRectContainsPoint(targetView.frame, pt))
+            {
+                if (!inTarget && [_collectionView.dataSource
+                                  respondsToSelector:@selector(collectionView:enterTarget:)])
+                    [delegate collectionView:self.collectionView enterTarget:YES];
+                
+                inTarget = YES;
+            }
+            else
+            {
+                if (inTarget && [_collectionView.dataSource
+                                 respondsToSelector:@selector(collectionView:leaveTarget:)])
+                    [delegate collectionView:self.collectionView leaveTarget:YES];
+
+                inTarget = NO;
+            }
+        }
         
         // Scroll when necessary
         if (canScroll) {

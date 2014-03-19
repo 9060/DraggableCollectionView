@@ -76,4 +76,25 @@
     [data2 insertObject:index atIndex:toIndexPath.item];
 }
 
+#pragma mark - UICollectionViewDataSource_ExternalTarget
+- (UIView *)externalTargetView
+{
+    return self.textView;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(BOOL)didHit
+{
+    NSLog(@"I HIT IT!");
+}
+
+- (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter
+{
+    NSLog(@"did enter target");
+}
+
+- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(BOOL)didLeave
+{
+    NSLog(@"did leave target");
+}
+
 @end
