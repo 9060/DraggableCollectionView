@@ -268,7 +268,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
             
             // special case for the external target view, if supported
-            if (inTarget) self.layoutHelper.toIndexPath = self.layoutHelper.fromIndexPath;
+            NSIndexPath *targetIndexPath;
+            if (inTarget) targetIndexPath = self.layoutHelper.toIndexPath = self.layoutHelper.fromIndexPath;
             
             // Tell the data source to move the item
             [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
@@ -311,7 +312,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 
                 if (CGRectContainsPoint(targetView.frame, pt))
                 {
-                    [delegate collectionView:self.collectionView didHitTarget:YES];
+                    [delegate collectionView:self.collectionView didHitTarget:targetIndexPath];
                     
                     // all done for now
                     inTarget = NO;

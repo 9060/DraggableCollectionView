@@ -13,7 +13,7 @@
 @required
 - (UIView *)externalTargetView;
 
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(BOOL)didHit;
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(NSIndexPath *)indexPath;
 
 @optional
 - (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter;

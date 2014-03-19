@@ -82,9 +82,9 @@
     return self.textView;
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(BOOL)didHit
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(NSIndexPath *)indexPath
 {
-    NSLog(@"I HIT IT!");
+    NSLog(@"%@ hit me!", indexPath);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter
