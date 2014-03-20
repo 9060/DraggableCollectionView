@@ -269,20 +269,45 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             
             // special case for the external target view, if supported
             NSIndexPath *targetIndexPath;
-            if (inTarget) targetIndexPath = self.layoutHelper.toIndexPath = self.layoutHelper.fromIndexPath;
-            
-            // Tell the data source to move the item
-            [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
-																				 moveItemAtIndexPath:self.layoutHelper.fromIndexPath
-																						 toIndexPath:self.layoutHelper.toIndexPath];
-            
-            // Move the item
-            [self.collectionView performBatchUpdates:^{
-                [self.collectionView moveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:self.layoutHelper.toIndexPath];
-                self.layoutHelper.fromIndexPath = nil;
-                self.layoutHelper.toIndexPath = nil;
-            } completion:nil];
-            
+            if (inTarget)
+            {
+                targetIndexPath = self.layoutHelper.toIndexPath = self.layoutHelper.fromIndexPath;
+                
+                // special case for the external target view, if supported
+                if ([self.collectionView.dataSource
+                     conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
+                {
+                    id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+                    UIView *targetView = [delegate externalTargetView];
+                    CGPoint pt = [sender locationInView:self.collectionView.superview];
+                    
+                    if (CGRectContainsPoint(targetView.frame, pt))
+                    {
+                        [delegate collectionView:self.collectionView didHitTarget:targetIndexPath];
+                        
+                        self.layoutHelper.fromIndexPath = nil;
+                        self.layoutHelper.toIndexPath = nil;
+                        
+                        // all done for now
+                        inTarget = NO;
+                    }
+                }
+            }
+            else
+            {
+                // Tell the data source to move the item
+                [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
+                                                                                     moveItemAtIndexPath:self.layoutHelper.fromIndexPath
+                                                                                             toIndexPath:self.layoutHelper.toIndexPath];
+                
+                // Move the item
+                [self.collectionView performBatchUpdates:^{
+                    [self.collectionView moveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:self.layoutHelper.toIndexPath];
+                    self.layoutHelper.fromIndexPath = nil;
+                    self.layoutHelper.toIndexPath = nil;
+                } completion:nil];
+            }
+
             // Switch mock for cell
             UICollectionViewLayoutAttributes *layoutAttributes = [self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath];
             [UIView
@@ -297,27 +322,11 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                  self.layoutHelper.hideIndexPath = nil;
                  [self.collectionView.collectionViewLayout invalidateLayout];
              }];
-            
+
             // Reset
             [self invalidatesScrollTimer];
             lastIndexPath = nil;
-            
-            // special case for the external target view, if supported
-            if ([self.collectionView.dataSource
-                 conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
-            {
-                id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
-                UIView *targetView = [delegate externalTargetView];
-                CGPoint pt = [sender locationInView:self.collectionView.superview];
-                
-                if (CGRectContainsPoint(targetView.frame, pt))
-                {
-                    [delegate collectionView:self.collectionView didHitTarget:targetIndexPath];
-                    
-                    // all done for now
-                    inTarget = NO;
-                }
-            }
+
         } break;
         default: break;
     }

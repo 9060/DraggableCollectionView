@@ -84,7 +84,11 @@
 
 - (void)collectionView:(UICollectionView *)collectionView didHitTarget:(NSIndexPath *)indexPath
 {
-    NSLog(@"%@ hit me!", indexPath);
+    NSLog(@"%@ hit me! Removing item ...", indexPath);
+    
+    NSMutableArray *data1 = [sections objectAtIndex:indexPath.section];
+    [data1 removeObjectAtIndex:indexPath.item];
+    [self.collectionView deleteItemsAtIndexPaths:@[ indexPath ]];
 }
 
 - (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter
