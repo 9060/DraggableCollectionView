@@ -76,6 +76,16 @@
     [data2 insertObject:index atIndex:toIndexPath.item];
 }
 
+- (void)collectionView:(UICollectionView *)collectionView willBeginDragOfIndex:(NSIndexPath *)indexPath
+{
+    NSLog(@"willBeginDragOfIndex:%@", indexPath);
+}
+
+- (void)collectionView:(UICollectionView *)collectionView willEndDragOfIndex:(NSIndexPath *)indexPath
+{
+    NSLog(@"willEndDragOfIndex:%@", indexPath);
+}
+
 #pragma mark - UICollectionViewDataSource_ExternalTarget
 - (UIView *)externalTargetView
 {
