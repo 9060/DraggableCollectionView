@@ -168,7 +168,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     
     // We need original positions of cells
     self.layoutHelper.toIndexPath = nil;
-    layoutAttrsInRect = [self.collectionView.collectionViewLayout layoutAttributesForElementsInRect:self.collectionView.frame];
+    layoutAttrsInRect = [self.collectionView.collectionViewLayout layoutAttributesForElementsInRect:self.collectionView.bounds];
     self.layoutHelper.toIndexPath = toIndexPath;
     
     // What cell are we closest to?
@@ -242,18 +242,13 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             
             // Create mock cell to drag around
             UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
+            CGRect frame = cell.frame;
             cell.highlighted = NO;
             [mockCell removeFromSuperview];
-            mockCell = [[UIImageView alloc] initWithFrame:cell.frame];
+            mockCell = [[UIImageView alloc] initWithFrame:frame];
             mockCell.image = [self imageFromCell:cell];
 
-            mockCenter = ({
-                CGPoint pt = mockCell.center;
-                pt.x += [self.collectionView contentOffset].x;
-                pt.y += [self.collectionView contentOffset].y;
-                pt;
-            });
-            mockLayoutAttributes = [self.collectionView layoutAttributesForItemAtIndexPath:indexPath];
+            mockCenter = mockCell.center;
             
             [self.collectionView addSubview:mockCell];
 			if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:transformForDraggingItemAtIndexPath:duration:)]) {
@@ -337,22 +332,23 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                     self.layoutHelper.toIndexPath = nil;
                 } completion:nil];
                 
-                // Switch mock for cell
-                UICollectionViewLayoutAttributes *layoutAttributes = [self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath];
-                [UIView
-                 animateWithDuration:0.3
-                 animations:^{
-                     mockCell.center = layoutAttributes.center;
-                     mockCell.transform = CGAffineTransformMakeScale(1.f, 1.f);
-                 }
-                 completion:^(BOOL finished) {
-                     [mockCell removeFromSuperview];
-                     mockCell = nil;
-                     mockLayoutAttributes = nil;
-                     self.layoutHelper.hideIndexPath = nil;
-                     [self.collectionView.collectionViewLayout invalidateLayout];
-                 }];
             }
+            
+            // Switch mock for cell
+            UICollectionViewLayoutAttributes *layoutAttributes = [self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath];
+            [UIView
+             animateWithDuration:0.3
+             animations:^{
+                 mockCell.center = layoutAttributes.center;
+                 mockCell.transform = CGAffineTransformMakeScale(1.f, 1.f);
+             }
+             completion:^(BOOL finished) {
+                 [mockCell removeFromSuperview];
+                 mockCell = nil;
+                 mockLayoutAttributes = nil;
+                 self.layoutHelper.hideIndexPath = nil;
+                 [self.collectionView.collectionViewLayout invalidateLayout];
+             }];
 
             // Reset
             [self invalidatesScrollTimer];
@@ -377,6 +373,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             toIndexPath:indexPath] == NO) {
 			return;
 		}
+    
     [self.collectionView performBatchUpdates:^{
         self.layoutHelper.hideIndexPath = indexPath;
         self.layoutHelper.toIndexPath = indexPath;
@@ -423,11 +420,11 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         if (canScroll) {
             UICollectionViewFlowLayout *scrollLayout = (UICollectionViewFlowLayout*)self.collectionView.collectionViewLayout;
             if([scrollLayout scrollDirection] == UICollectionViewScrollDirectionVertical) {
-                if (mockCell.center.y < (CGRectGetMinY(self.collectionView.frame) + self.scrollingEdgeInsets.top)) {
+                if (mockCell.center.y < (CGRectGetMinY(self.collectionView.bounds) + self.scrollingEdgeInsets.top)) {
                     [self setupScrollTimerInDirection:_ScrollingDirectionUp];
                 }
                 else {
-                    if (mockCell.center.y > (CGRectGetMaxY(self.collectionView.frame) - self.scrollingEdgeInsets.bottom)) {
+                    if (mockCell.center.y > (CGRectGetMaxY(self.collectionView.bounds) - self.scrollingEdgeInsets.bottom)) {
                         [self setupScrollTimerInDirection:_ScrollingDirectionDown];
                     }
                     else {
@@ -436,10 +433,10 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 }
             }
             else {
-                if (mockCell.center.x < (CGRectGetMinX(self.collectionView.frame) + self.scrollingEdgeInsets.left)) {
+                if (mockCell.center.x < (CGRectGetMinX(self.collectionView.bounds) + self.scrollingEdgeInsets.left)) {
                     [self setupScrollTimerInDirection:_ScrollingDirectionLeft];
                 } else {
-                    if (mockCell.center.x > (CGRectGetMaxX(self.collectionView.frame) - self.scrollingEdgeInsets.right)) {
+                    if (mockCell.center.x > (CGRectGetMaxX(self.collectionView.bounds) - self.scrollingEdgeInsets.right)) {
                         [self setupScrollTimerInDirection:_ScrollingDirectionRight];
                     } else {
                         [self invalidatesScrollTimer];
@@ -465,7 +462,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         return;
     }
     
-    CGSize frameSize = self.collectionView.frame.size;
+    CGSize frameSize = self.collectionView.bounds.size;
     CGSize contentSize = self.collectionView.contentSize;
     CGPoint contentOffset = self.collectionView.contentOffset;
     CGFloat distance = self.scrollingSpeed / 60.f;
@@ -475,7 +472,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         case _ScrollingDirectionUp: {
             distance = -distance;
             if ((contentOffset.y + distance) <= 0.f) {
-                distance = 0.f -contentOffset.y;
+                distance = 0.f - contentOffset.y;
             }
             translation = CGPointMake(0.f, distance);
         } break;
@@ -506,7 +503,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     mockCenter  = _CGPointAdd(mockCenter, translation);
     mockCell.center = _CGPointAdd(mockCenter, fingerTranslation);
     self.collectionView.contentOffset = _CGPointAdd(contentOffset, translation);
-    
+
     // Warp items while scrolling
     NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:mockCell.center];
     [self warpToIndexPath:indexPath];

@@ -8,9 +8,9 @@
 #import "LSCollectionViewLayoutHelper.h"
 
 @interface DraggableCollectionViewFlowLayout ()
-{
-    LSCollectionViewLayoutHelper *_layoutHelper;
-}
+
+@property (readwrite, nonatomic) LSCollectionViewLayoutHelper *layoutHelper;
+
 @end
 
 @implementation DraggableCollectionViewFlowLayout
