@@ -40,8 +40,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     BOOL canWarp;
     BOOL canScroll;
 	BOOL _hasShouldAlterTranslationDelegateMethod;
-    BOOL inTarget;
 }
+@property (nonatomic, weak) UIView *inTargetView;
 @property (readonly, nonatomic) LSCollectionViewLayoutHelper *layoutHelper;
 @end
 
@@ -69,7 +69,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         _panPressGestureRecognizer.delegate = self;
 		
         // Support for UICollectionView_ExternalTarget
-        inTarget = NO;
+        _inTargetView = nil;
         
         [_collectionView addGestureRecognizer:_panPressGestureRecognizer];
         
@@ -259,7 +259,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 				} completion:nil];
 			}
             
-            inTarget = NO;
+            self.inTargetView = nil;
             
             if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:willBeginDragOfIndex:)] == YES)
             {
@@ -282,24 +282,26 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
             
             // special case for the external target view, if supported
-            if (inTarget)
+            if (self.inTargetView)
             {
                 // all done for now
-                inTarget = NO;
+                self.inTargetView = nil;
                 
                 if ([self.collectionView.dataSource
                      conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
                 {
                     id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
-                    UIView *targetView = [delegate externalTargetView];
                     CGPoint pt = [sender locationInView:self.collectionView.superview];
-                    
-                    if (CGRectContainsPoint(targetView.frame, pt))
-                    {
-                        [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
-                                                                                            willEndDragOfIndex:self.layoutHelper.fromIndexPath];
-                        [delegate collectionView:self.collectionView didHitTarget:self.layoutHelper.fromIndexPath];
-                    }
+
+                    [delegate.externalTargets enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
+                        if (CGRectContainsPoint(targetView.frame, pt))
+                        {
+                            [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
+                                                                                                  willEndDragOfIndex:self.layoutHelper.fromIndexPath];
+                            [delegate collectionView:self.collectionView didHitTarget:targetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                            *stop = YES;
+                        }
+                    }];
                 }
                 
                 self.layoutHelper.fromIndexPath = nil;
@@ -395,24 +397,32 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
              conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
         {
             id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
-            UIView *targetView = [delegate externalTargetView];
+            __block UIView *nextTargetView = nil;
             CGPoint pt = [sender locationInView:self.collectionView.superview];
+            [delegate.externalTargets enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
+                if (CGRectContainsPoint(targetView.frame, pt)) {
+                    nextTargetView = targetView;
+                    *stop = YES;
+                }
+            }];
             
-            if (CGRectContainsPoint(targetView.frame, pt))
-            {
-                if (!inTarget && [_collectionView.dataSource
-                                  respondsToSelector:@selector(collectionView:enterTarget:)])
-                    [delegate collectionView:self.collectionView enterTarget:YES];
-                
-                inTarget = YES;
+            if (nextTargetView) {
+                if (_inTargetView && ![_inTargetView isEqual:nextTargetView]
+                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:)]) {
+                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView];
+                }
+                if (![nextTargetView isEqual:_inTargetView]
+                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:enterTarget:)]) {
+                    [delegate collectionView:self.collectionView enterTarget:nextTargetView];
+                }
+                self.inTargetView = nextTargetView;
             }
-            else
-            {
-                if (inTarget && [_collectionView.dataSource
-                                 respondsToSelector:@selector(collectionView:leaveTarget:)])
-                    [delegate collectionView:self.collectionView leaveTarget:YES];
-
-                inTarget = NO;
+            else {
+                if (_inTargetView
+                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:)]) {
+                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView];
+                }
+                self.inTargetView = nil;
             }
         }
         

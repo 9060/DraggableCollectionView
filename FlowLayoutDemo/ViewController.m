@@ -87,12 +87,12 @@
 }
 
 #pragma mark - UICollectionViewDataSource_ExternalTarget
-- (UIView *)externalTargetView
+- (NSArray *)externalTargets
 {
-    return self.textView;
+    return @[self.textView];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(NSIndexPath *)indexPath
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView fromIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"%@ hit me! Removing item ...", indexPath);
     
@@ -101,14 +101,14 @@
     [self.collectionView deleteItemsAtIndexPaths:@[ indexPath ]];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter
+- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView
 {
-    NSLog(@"did enter target");
+    NSLog(@"did enter target [%@]", didEnterTargetView);
 }
 
-- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(BOOL)didLeave
+- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView
 {
-    NSLog(@"did leave target");
+    NSLog(@"did leave target [%@]", didLeaveTargetView);
 }
 
 @end

@@ -11,12 +11,11 @@
 @protocol UICollectionViewDataSource_ExternalTarget <UICollectionViewDataSource>
 
 @required
-- (UIView *)externalTargetView;
-
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(NSIndexPath *)indexPath;
+- (NSArray *)externalTargets;
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView fromIndexPath:(NSIndexPath *)indexPath;
 
 @optional
-- (void)collectionView:(UICollectionView *)collectionView enterTarget:(BOOL)didEnter;
-- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(BOOL)didLeave;
+- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView;
+- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView;
 
 @end
