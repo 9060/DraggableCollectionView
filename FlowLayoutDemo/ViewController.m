@@ -92,8 +92,9 @@
     return @[self.textView];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView fromIndexPath:(NSIndexPath *)indexPath
+- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
 {
+    NSLog(@"Dropped in Target:[%@] at point:[%@,%@]", targetView, @(dropPoint.x), @(dropPoint.y));
     NSLog(@"%@ hit me! Removing item ...", indexPath);
     
     NSMutableArray *data1 = [sections objectAtIndex:indexPath.section];
@@ -101,9 +102,14 @@
     [self.collectionView deleteItemsAtIndexPaths:@[ indexPath ]];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView
+- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint
 {
-    NSLog(@"did enter target [%@]", didEnterTargetView);
+    NSLog(@"did enter target [%@] at point:[%@,%@]", didEnterTargetView, @(didEnterPoint.x), @(didEnterPoint.y));
+}
+
+- (void) collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint
+{
+    NSLog(@"did drag in target [%@] at point:[%@,%@]", didDragInTargetView, @(didDragInPoint.x), @(didDragInPoint.y));
 }
 
 - (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView

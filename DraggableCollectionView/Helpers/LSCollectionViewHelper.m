@@ -296,9 +296,10 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                     [delegate.externalTargets enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
                         if (CGRectContainsPoint(targetView.frame, pt))
                         {
+                            CGPoint ptInTarget = [sender locationInView:targetView];
                             [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
                                                                                                   willEndDragOfIndex:self.layoutHelper.fromIndexPath];
-                            [delegate collectionView:self.collectionView didHitTarget:targetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                            [delegate collectionView:self.collectionView didHitTarget:targetView atPoint:ptInTarget fromIndexPath:self.layoutHelper.fromIndexPath];
                             *stop = YES;
                         }
                     }];
@@ -407,13 +408,17 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }];
             
             if (nextTargetView) {
-                if (_inTargetView && ![_inTargetView isEqual:nextTargetView]
-                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:)]) {
-                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView];
+                if (![nextTargetView isEqual:_inTargetView]) {
+                    if (_inTargetView
+                        && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:)]) {
+                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView];
+                    }
+                    if ([_collectionView.dataSource respondsToSelector:@selector(collectionView:enterTarget:atPoint:)]) {
+                        [delegate collectionView:self.collectionView enterTarget:nextTargetView atPoint:[sender locationInView:nextTargetView]];
+                    }
                 }
-                if (![nextTargetView isEqual:_inTargetView]
-                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:enterTarget:)]) {
-                    [delegate collectionView:self.collectionView enterTarget:nextTargetView];
+                else if ([_collectionView.dataSource respondsToSelector:@selector(collectionView:dragInTarget:atPoint:)]) {
+                    [delegate collectionView:self.collectionView dragInTarget:nextTargetView atPoint:[sender locationInView:nextTargetView]];
                 }
                 self.inTargetView = nextTargetView;
             }
