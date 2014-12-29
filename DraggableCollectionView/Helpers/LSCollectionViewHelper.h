@@ -16,4 +16,7 @@
 @property (nonatomic, assign) UIEdgeInsets scrollingEdgeInsets;
 @property (nonatomic, assign) CGFloat scrollingSpeed;
 @property (nonatomic, assign) BOOL enabled;
+
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
+
 @end

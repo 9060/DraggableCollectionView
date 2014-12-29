@@ -14,4 +14,6 @@
 @property (nonatomic, assign) UIEdgeInsets scrollingEdgeInsets;
 @property (nonatomic, assign) CGFloat scrollingSpeed;
 
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
+
 @end

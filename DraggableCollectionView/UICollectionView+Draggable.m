@@ -50,4 +50,9 @@
     [self getHelper].scrollingSpeed = scrollingSpeed;
 }
 
+- (NSIndexPath *) indexPathForItemClosestToPoint:(CGPoint)point
+{
+    return [[self getHelper] indexPathForItemClosestToPoint:point];
+}
+
 @end

@@ -7,13 +7,16 @@
 #import "ViewController.h"
 #import "Cell.h"
 
-#define SECTION_COUNT 5
-#define ITEM_COUNT 20
+#define SECTION_COUNT 2
+#define ITEM_COUNT 5
 
 @interface ViewController ()
 {
-    NSMutableArray *sections;
+    NSMutableArray *topSections;
+    NSMutableArray *bottomSections;
 }
+@property (nonatomic, weak) IBOutlet UICollectionView *targetCollectionView;
+
 @end
 
 @implementation ViewController
@@ -22,31 +25,54 @@
 {
     [super viewDidLoad];
     
-    sections = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
+    topSections = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
+    bottomSections = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
     for(int s = 0; s < SECTION_COUNT; s++) {
-        NSMutableArray *data = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
+        NSMutableArray *topData = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
+        NSMutableArray *bottomData = [[NSMutableArray alloc] initWithCapacity:ITEM_COUNT];
         for(int i = 0; i < ITEM_COUNT; i++) {
-            [data addObject:[NSString stringWithFormat:@"%c %@", 65+s, @(i)]];
+            [topData addObject:[NSString stringWithFormat:@"top-%c %@", 65+s, @(i)]];
+            [bottomData addObject:[NSString stringWithFormat:@"bottom-%c %@", 65+s, @(i)]];
         }
-        [sections addObject:data];
+        [topSections addObject:topData];
+        [bottomSections addObject:bottomData];
     }
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
-    return sections.count;
+    if ([collectionView isEqual:_collectionView]) {
+        return topSections.count;
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        return bottomSections.count;
+    }
+    return 0;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return [[sections objectAtIndex:section] count];
+    if ([collectionView isEqual:_collectionView]) {
+        return [[topSections objectAtIndex:section] count];
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        return [[bottomSections objectAtIndex:section] count];
+    }
+
+    return 0;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     Cell *cell = (Cell*)[collectionView dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
-    NSMutableArray *data = [sections objectAtIndex:indexPath.section];
-    
+    NSMutableArray *data = nil;
+    if ([collectionView isEqual:_collectionView]) {
+        data = [topSections objectAtIndex:indexPath.section];
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        data = [bottomSections objectAtIndex:indexPath.section];
+    }
+   
     cell.label.text = [data objectAtIndex:indexPath.item];
     
     return cell;
@@ -66,8 +92,16 @@
     return YES;
 }
 
-- (void)collectionView:(LSCollectionViewHelper *)collectionView moveItemAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
+- (void)collectionView:(UICollectionView *)collectionView moveItemAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
+    NSMutableArray *sections = nil;
+    if ([collectionView isEqual:_collectionView]) {
+        sections = topSections;
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        sections = bottomSections;
+    }
+
     NSMutableArray *data1 = [sections objectAtIndex:fromIndexPath.section];
     NSMutableArray *data2 = [sections objectAtIndex:toIndexPath.section];
     NSString *index = [data1 objectAtIndex:fromIndexPath.item];
@@ -87,32 +121,59 @@
 }
 
 #pragma mark - UICollectionViewDataSource_ExternalTarget
-- (NSArray *)externalTargets
+- (NSArray *)externalTargetsForCollectionView:(UICollectionView *)collectionView
 {
-    return @[self.textView];
+    if ([collectionView isEqual:_collectionView]) {
+        return @[self.targetCollectionView];
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        return @[self.collectionView];
+    }
+
+    return @[self.targetCollectionView];
 }
 
+// Dropping Externally
 - (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
 {
+    NSMutableArray *sourceSections = nil;
+    NSMutableArray *targetSections = nil;
+    if ([collectionView isEqual:_collectionView]) {
+        sourceSections = topSections;
+        targetSections = bottomSections;
+    }
+    else if ([collectionView isEqual:_targetCollectionView]) {
+        sourceSections = bottomSections;
+        targetSections = topSections;
+    }
+
     NSLog(@"Dropped in Target:[%@] at point:[%@,%@]", targetView, @(dropPoint.x), @(dropPoint.y));
     NSLog(@"%@ hit me! Removing item ...", indexPath);
     
-    NSMutableArray *data1 = [sections objectAtIndex:indexPath.section];
+    NSMutableArray *data1 = [sourceSections objectAtIndex:indexPath.section];
+    id toMove = [data1 objectAtIndex:indexPath.item];
+    // Remove
     [data1 removeObjectAtIndex:indexPath.item];
-    [self.collectionView deleteItemsAtIndexPaths:@[ indexPath ]];
+    [collectionView deleteItemsAtIndexPaths:@[ indexPath ]];
+    // Insert
+    UICollectionView *targetCV = (UICollectionView *)targetView;
+    NSIndexPath *targetIndexPath = [targetCV indexPathForItemClosestToPoint:dropPoint];
+    NSMutableArray *targetArray = [targetSections objectAtIndex:targetIndexPath.section];
+    [targetArray insertObject:toMove atIndex:targetIndexPath.item];
+    [targetCV insertItemsAtIndexPaths:@[targetIndexPath]];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint
+- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"did enter target [%@] at point:[%@,%@]", didEnterTargetView, @(didEnterPoint.x), @(didEnterPoint.y));
 }
 
-- (void) collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint
+- (void) collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"did drag in target [%@] at point:[%@,%@]", didDragInTargetView, @(didDragInPoint.x), @(didDragInPoint.y));
 }
 
-- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView
+- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView fromIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"did leave target [%@]", didLeaveTargetView);
 }
