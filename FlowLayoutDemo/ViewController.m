@@ -89,9 +89,9 @@
 - (BOOL)collectionView:(UICollectionView *)collectionView canMoveItemAtIndexPath:(NSIndexPath *)indexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
 // Prevent item from being moved to index 0
-//    if (toIndexPath.item == 0) {
-//        return NO;
-//    }
+    if (toIndexPath.item == 0) {
+        return NO;
+    }
     return YES;
 }
 
@@ -160,15 +160,19 @@
     
     NSMutableArray *data1 = [sourceSections objectAtIndex:indexPath.section];
     id toMove = [data1 objectAtIndex:indexPath.item];
-    // Remove
-    [data1 removeObjectAtIndex:indexPath.item];
-    [collectionView deleteItemsAtIndexPaths:@[indexPath]];
     // Insert
     UICollectionView *targetCV = (UICollectionView *)targetView;
-    NSIndexPath *targetIndexPath = [targetCV indexPathForItemClosestToPoint:dropPoint];
+    NSIndexPath *targetIndexPath = [targetCV indexPathForItemClosestToPoint:dropPoint mustBeValidMoveTarget:YES];
+    if (!targetIndexPath) {
+        NSLog(@"No Valid indexPaths Found! Can't move object over. BAILING");
+        return;
+    }
     NSMutableArray *targetArray = [targetSections objectAtIndex:targetIndexPath.section];
     [targetArray insertObject:toMove atIndex:targetIndexPath.item];
     [targetCV insertItemsAtIndexPaths:@[targetIndexPath]];
+    // Remove
+    [data1 removeObjectAtIndex:indexPath.item];
+    [collectionView deleteItemsAtIndexPaths:@[indexPath]];
 }
 
 - (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath
@@ -186,17 +190,26 @@
     }
     self.externalHoverObject = ((NSArray *)sourceSections[indexPath.section])[indexPath.item];
     UICollectionView *targetCV = (UICollectionView *)didEnterTargetView;
-    self.externalHoverIndexPath = [targetCV indexPathForItemClosestToPoint:didEnterPoint];
-    NSMutableArray *targetArray = [targetSections objectAtIndex:_externalHoverIndexPath.section];
-    [targetArray insertObject:_externalHoverObject atIndex:_externalHoverIndexPath.item];
-    [targetCV insertItemsAtIndexPaths:@[_externalHoverIndexPath]];
+    self.externalHoverIndexPath = [targetCV indexPathForItemClosestToPoint:didEnterPoint mustBeValidMoveTarget:YES];
+    if (_externalHoverIndexPath) {
+        NSMutableArray *targetArray = [targetSections objectAtIndex:_externalHoverIndexPath.section];
+        [targetArray insertObject:_externalHoverObject atIndex:_externalHoverIndexPath.item];
+        [targetCV insertItemsAtIndexPaths:@[_externalHoverIndexPath]];
+    }
+    else {
+        NSLog(@"No Valid indexPaths Found! Can't add to dataSource");
+    }
 }
 
 - (void) collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"did drag in target [%@] at point:[%@,%@]", didDragInTargetView, @(didDragInPoint.x), @(didDragInPoint.y));
     UICollectionView *targetCV = (UICollectionView *)didDragInTargetView;
-    NSIndexPath *nextIndexPath = [targetCV indexPathForItemClosestToPoint:didDragInPoint];
+    NSIndexPath *nextIndexPath = [targetCV indexPathForItemClosestToPoint:didDragInPoint mustBeValidMoveTarget:YES];
+    if (!nextIndexPath) {
+        NSLog(@"No Valid indexPaths Found! Can't add to dataSource");
+        return;
+    }
     NSMutableArray *targetSection = nil;
     if ([collectionView isEqual:_collectionView]) {
         targetSection = bottomSections[nextIndexPath.section];
@@ -208,9 +221,18 @@
     if (nextIndexPath.item >= targetSection.count && [targetSection containsObject:_externalHoverObject]) {
         nextIndexPath = [NSIndexPath indexPathForItem:targetSection.count-1 inSection:nextIndexPath.section];
     }
+    if (![self collectionView:targetCV canMoveItemAtIndexPath:_externalHoverIndexPath toIndexPath:nextIndexPath]) {
+        return;
+    }
     if (![nextIndexPath isEqual:_externalHoverIndexPath]) {
-        [self collectionView:targetCV moveItemAtIndexPath:_externalHoverIndexPath toIndexPath:nextIndexPath];
-        [targetCV moveItemAtIndexPath:_externalHoverIndexPath toIndexPath:nextIndexPath];
+        if (!_externalHoverIndexPath) { // We didn't have a valid target initially, but now we do some how.
+            [targetSection insertObject:_externalHoverObject atIndex:nextIndexPath.item];
+            [targetCV insertItemsAtIndexPaths:@[nextIndexPath]];
+        }
+        else {
+            [self collectionView:targetCV moveItemAtIndexPath:_externalHoverIndexPath toIndexPath:nextIndexPath];
+            [targetCV moveItemAtIndexPath:_externalHoverIndexPath toIndexPath:nextIndexPath];
+        }
         self.externalHoverIndexPath = nextIndexPath;
     }
 }

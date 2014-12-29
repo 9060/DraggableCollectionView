@@ -55,4 +55,9 @@
     return [[self getHelper] indexPathForItemClosestToPoint:point];
 }
 
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget
+{
+    return [[self getHelper] indexPathForItemClosestToPoint:point mustBeValidMoveTarget:mustBeValidMoveTarget];
+}
+
 @end

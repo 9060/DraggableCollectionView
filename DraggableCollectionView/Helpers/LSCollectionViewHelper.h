@@ -18,5 +18,6 @@
 @property (nonatomic, assign) BOOL enabled;
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget;
 
 @end

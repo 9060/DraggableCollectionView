@@ -165,14 +165,25 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point
 {
-    NSArray *layoutAttrsInRect;
+    return [self indexPathForItemClosestToPoint:point mustBeValidMoveTarget:NO];
+}
+
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget
+{
+    NSMutableArray *layoutAttrsInRect;
     NSInteger closestDist = NSIntegerMax;
     NSIndexPath *indexPath;
     NSIndexPath *toIndexPath = self.layoutHelper.toIndexPath;
     
     // We need original positions of cells
     self.layoutHelper.toIndexPath = nil;
-    layoutAttrsInRect = [self.collectionView.collectionViewLayout layoutAttributesForElementsInRect:self.collectionView.bounds];
+    layoutAttrsInRect = [self.collectionView.collectionViewLayout layoutAttributesForElementsInRect:self.collectionView.bounds].mutableCopy;
+    if (mustBeValidMoveTarget && [self.collectionView.dataSource respondsToSelector:@selector(collectionView:canMoveItemAtIndexPath:toIndexPath:)]) {
+        id<UICollectionViewDataSource_Draggable> dataSource = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
+        [layoutAttrsInRect filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UICollectionViewLayoutAttributes *layoutAttr, NSDictionary *bindings) {
+            return [dataSource collectionView:self.collectionView canMoveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:layoutAttr.indexPath];
+        }]];
+    }
     self.layoutHelper.toIndexPath = toIndexPath;
     
     // What cell are we closest to?
@@ -199,6 +210,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         
         if (items > 0) {
             layoutAttr = [self.collectionView.collectionViewLayout layoutAttributesForItemAtIndexPath:nextIndexPath];
+            if (![layoutAttrsInRect containsObject:layoutAttr]) {
+                continue;
+            }
             xd = layoutAttr.center.x - point.x;
             yd = layoutAttr.center.y - point.y;
         } else {
@@ -206,6 +220,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             // So we're going to ask for the header instead. It doesn't have to exist.
             layoutAttr = [self.collectionView.collectionViewLayout layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader
                                                                                                   atIndexPath:nextIndexPath];
+            if (![layoutAttrsInRect containsObject:layoutAttr]) {
+                continue;
+            }
             xd = layoutAttr.frame.origin.x - point.x;
             yd = layoutAttr.frame.origin.y - point.y;
         }
@@ -411,8 +428,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         mockCell.center = _CGPointAdd(translatedCentre, targetViewTranslation);
 
         // special case for the external target view, if supported
-        if ([self.collectionView.dataSource
-             conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
+        if ([self.collectionView.dataSource conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
         {
             id<UICollectionViewDataSource_DraggableWithExternalTarget> delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
             __block UIView *nextTargetView = nil;

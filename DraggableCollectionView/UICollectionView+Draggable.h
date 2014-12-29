@@ -14,5 +14,6 @@
 @property (nonatomic, assign) CGFloat scrollingSpeed;
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
+- (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget;
 
 @end
