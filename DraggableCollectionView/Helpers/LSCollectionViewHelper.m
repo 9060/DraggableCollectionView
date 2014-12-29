@@ -315,37 +315,38 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
             
             // special case for the external target view, if supported
-            if (self.inTargetView)
-            {
+            if (self.inTargetView && [self.collectionView.dataSource
+                                      conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)]) {
+                id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
+
                 NSIndexPath *fromIndexPath = self.layoutHelper.fromIndexPath;
                 self.layoutHelper.fromIndexPath = nil;
                 self.layoutHelper.toIndexPath = nil;
                 
-                if ([self.collectionView.dataSource
-                     conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
-                {
-                    id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
-                    if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
-                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:fromIndexPath];
-                    }
-
-                    if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
-                        [delegate collectionView:self.collectionView willEndDragOfIndex:fromIndexPath];
-                    }
-                    
+                if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
+                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:fromIndexPath];
+                }
+                
+                if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
+                    [delegate collectionView:self.collectionView willEndDragOfIndex:fromIndexPath];
+                }
+                
+                CGPoint dropPoint = [sender locationInView:_inTargetView];
+                if ([delegate respondsToSelector:@selector(collectionView:canDropInTarget:atPoint:fromIndexPath:)] == NO
+                    || [delegate collectionView:self.collectionView canDropInTarget:_inTargetView atPoint:dropPoint fromIndexPath:fromIndexPath] == YES) {
                     [delegate collectionView:self.collectionView
-                                didHitTarget:_inTargetView
-                                     atPoint:[sender locationInView:_inTargetView]
+                             didDropInTarget:_inTargetView
+                                     atPoint:dropPoint
                                fromIndexPath:fromIndexPath];
+                    [mockCell removeFromSuperview];
+                    mockCell = nil;
+                    mockLayoutAttributes = nil;
+                    self.layoutHelper.hideIndexPath = nil;
+                    [self.collectionView.collectionViewLayout invalidateLayout];
                 }
                 
                 self.inTargetView = nil;
                 
-                [mockCell removeFromSuperview];
-                mockCell = nil;
-                mockLayoutAttributes = nil;
-                self.layoutHelper.hideIndexPath = nil;
-                [self.collectionView.collectionViewLayout invalidateLayout];
             }
             else
             {

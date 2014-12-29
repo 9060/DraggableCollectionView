@@ -13,7 +13,7 @@
 
 @required
 - (NSArray *)externalTargetsForCollectionView:(UICollectionView *)collectionView;
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath;
+- (void)collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath;
 
 @optional
 
@@ -21,5 +21,6 @@
 - (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath;
 - (void)collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint fromIndexPath:(NSIndexPath *)indexPath;
 - (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView fromIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)collectionView:(UICollectionView *)collectionView canDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath;
 
 @end

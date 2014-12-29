@@ -142,7 +142,13 @@
 }
 
 // Dropping Externally
-- (void)collectionView:(UICollectionView *)collectionView didHitTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
+- (BOOL) collectionView:(UICollectionView *)collectionView canDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
+{
+    UICollectionView *targetCV = (UICollectionView *)targetView;
+    return ([targetCV indexPathForItemClosestToPoint:dropPoint mustBeValidMoveTarget:YES] != nil);
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     NSMutableArray *sourceSections = nil;
     NSMutableArray *targetSections = nil;
