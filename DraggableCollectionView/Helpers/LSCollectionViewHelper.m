@@ -6,8 +6,7 @@
 
 #import "LSCollectionViewHelper.h"
 #import "UICollectionViewLayout_Warpable.h"
-#import "UICollectionViewDataSource_Draggable.h"
-#import "UICollectionViewDataSource_ExternalTarget.h"
+#import "UICollectionViewDataSource_DraggableWithExternalTarget.h"
 #import "LSCollectionViewLayoutHelper.h"
 #import <QuartzCore/QuartzCore.h>
 
@@ -286,9 +285,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             {
                 
                 if ([self.collectionView.dataSource
-                     conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
+                     conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
                 {
-                    id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+                    id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
                     if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
                         [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
@@ -394,9 +393,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         
         // special case for the external target view, if supported
         if ([self.collectionView.dataSource
-             conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
+             conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
         {
-            id<UICollectionViewDataSource_ExternalTarget> delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+            id<UICollectionViewDataSource_DraggableWithExternalTarget> delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
             __block UIView *nextTargetView = nil;
             CGPoint pt = [sender locationInView:self.collectionView.superview];
             [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {

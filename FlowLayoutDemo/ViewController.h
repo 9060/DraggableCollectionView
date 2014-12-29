@@ -7,7 +7,7 @@
 #import <UIKit/UIKit.h>
 #import "UICollectionView+Draggable.h"
 
-@interface ViewController : UIViewController < UICollectionViewDataSource_ExternalTarget, UICollectionViewDelegate >
+@interface ViewController : UIViewController < UICollectionViewDataSource_DraggableWithExternalTarget, UICollectionViewDelegate >
 
 @property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
 

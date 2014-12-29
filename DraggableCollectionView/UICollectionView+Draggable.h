@@ -5,8 +5,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "UICollectionViewDataSource_Draggable.h"
-#import "UICollectionViewDataSource_ExternalTarget.h"
+#import "UICollectionViewDataSource_DraggableWithExternalTarget.h"
 
 @interface UICollectionView (Draggable)
 

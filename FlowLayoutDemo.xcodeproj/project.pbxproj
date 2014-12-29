@@ -28,7 +28,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		570401C518D8E151006EB05E /* UICollectionViewDataSource_ExternalTarget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UICollectionViewDataSource_ExternalTarget.h; sourceTree = "<group>"; };
+		570401C518D8E151006EB05E /* UICollectionViewDataSource_DraggableWithExternalTarget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UICollectionViewDataSource_DraggableWithExternalTarget.h; sourceTree = "<group>"; };
 		8E11CC4C1759BB55004D2284 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		8E11CC4F1759BB5E004D2284 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		8E11CC511759BB5E004D2284 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
@@ -143,7 +143,7 @@
 				8E947CCD1754593B0077D957 /* UICollectionView+Draggable.h */,
 				8E947CCE1754593B0077D957 /* UICollectionView+Draggable.m */,
 				8E947CCF1754593B0077D957 /* UICollectionViewDataSource_Draggable.h */,
-				570401C518D8E151006EB05E /* UICollectionViewDataSource_ExternalTarget.h */,
+				570401C518D8E151006EB05E /* UICollectionViewDataSource_DraggableWithExternalTarget.h */,
 				8E947CD01754593B0077D957 /* UICollectionViewLayout_Warpable.h */,
 			);
 			path = DraggableCollectionView;
