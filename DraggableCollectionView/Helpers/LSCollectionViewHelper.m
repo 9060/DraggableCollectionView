@@ -284,27 +284,26 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             // special case for the external target view, if supported
             if (self.inTargetView)
             {
-                // all done for now
-                self.inTargetView = nil;
                 
                 if ([self.collectionView.dataSource
                      conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
                 {
                     id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
-                    CGPoint pt = [sender locationInView:self.collectionView.superview];
+                    if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
+                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                    }
 
-                    [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
-                        if (CGRectContainsPoint(targetView.frame, pt))
-                        {
-                            CGPoint ptInTarget = [sender locationInView:targetView];
-                            [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
-                                                                                                  willEndDragOfIndex:self.layoutHelper.fromIndexPath];
-                            [delegate collectionView:self.collectionView didHitTarget:targetView atPoint:ptInTarget fromIndexPath:self.layoutHelper.fromIndexPath];
-                            *stop = YES;
-                        }
-                    }];
+                    if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
+                        [delegate collectionView:self.collectionView willEndDragOfIndex:self.layoutHelper.fromIndexPath];
+                    }
+                    
+                    [delegate collectionView:self.collectionView
+                                didHitTarget:_inTargetView
+                                     atPoint:[sender locationInView:_inTargetView]
+                               fromIndexPath:self.layoutHelper.fromIndexPath];
                 }
                 
+                self.inTargetView = nil;
                 self.layoutHelper.fromIndexPath = nil;
                 self.layoutHelper.toIndexPath = nil;
                 
@@ -397,7 +396,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         if ([self.collectionView.dataSource
              conformsToProtocol:@protocol(UICollectionViewDataSource_ExternalTarget)])
         {
-            id<UICollectionViewDataSource_ExternalTarget>delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
+            id<UICollectionViewDataSource_ExternalTarget> delegate = (id<UICollectionViewDataSource_ExternalTarget>)self.collectionView.dataSource;
             __block UIView *nextTargetView = nil;
             CGPoint pt = [sender locationInView:self.collectionView.superview];
             [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
@@ -410,15 +409,15 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             if (nextTargetView) {
                 if (![nextTargetView isEqual:_inTargetView]) {
                     if (_inTargetView
-                        && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
+                        && [delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
                         [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
-                    if ([_collectionView.dataSource respondsToSelector:@selector(collectionView:enterTarget:atPoint:fromIndexPath:)]) {
+                    if ([delegate respondsToSelector:@selector(collectionView:enterTarget:atPoint:fromIndexPath:)]) {
                         [delegate collectionView:self.collectionView enterTarget:nextTargetView
                                          atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
                 }
-                else if ([_collectionView.dataSource respondsToSelector:@selector(collectionView:dragInTarget:atPoint:fromIndexPath:)]) {
+                else if ([delegate respondsToSelector:@selector(collectionView:dragInTarget:atPoint:fromIndexPath:)]) {
                     [delegate collectionView:self.collectionView dragInTarget:nextTargetView
                                      atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
                 }
@@ -426,7 +425,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
             else {
                 if (_inTargetView
-                    && [_collectionView.dataSource respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
+                    && [delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
                     [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                 }
                 self.inTargetView = nil;

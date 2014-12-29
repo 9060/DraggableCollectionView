@@ -7,8 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "UICollectionViewDataSource_Draggable.h"
 
-@protocol UICollectionViewDataSource_ExternalTarget <UICollectionViewDataSource>
+@protocol UICollectionViewDataSource_ExternalTarget <UICollectionViewDataSource_Draggable>
 
 @required
 - (NSArray *)externalTargetsForCollectionView:(UICollectionView *)collectionView;
