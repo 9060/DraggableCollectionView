@@ -323,8 +323,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 self.layoutHelper.fromIndexPath = nil;
                 self.layoutHelper.toIndexPath = nil;
                 
-                if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:fromIndexPath];
+                if ([delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
+                    [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:fromIndexPath];
                 }
                 
                 if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
@@ -444,24 +444,24 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             if (nextTargetView) {
                 if (![nextTargetView isEqual:_inTargetView]) {
                     if (_inTargetView
-                        && [delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
-                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                        && [delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
+                        [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
-                    if ([delegate respondsToSelector:@selector(collectionView:enterTarget:atPoint:fromIndexPath:)]) {
-                        [delegate collectionView:self.collectionView enterTarget:nextTargetView
+                    if ([delegate respondsToSelector:@selector(collectionView:dragEnteredTarget:atPoint:fromIndexPath:)]) {
+                        [delegate collectionView:self.collectionView dragEnteredTarget:nextTargetView
                                          atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
                 }
-                else if ([delegate respondsToSelector:@selector(collectionView:dragInTarget:atPoint:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView dragInTarget:nextTargetView
+                else if ([delegate respondsToSelector:@selector(collectionView:dragUpdateInTarget:atPoint:fromIndexPath:)]) {
+                    [delegate collectionView:self.collectionView dragUpdateInTarget:nextTargetView
                                      atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
                 }
                 self.inTargetView = nextTargetView;
             }
             else {
                 if (_inTargetView
-                    && [delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                    && [delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
+                    [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                 }
                 self.inTargetView = nil;
             }

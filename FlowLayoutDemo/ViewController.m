@@ -181,9 +181,9 @@
     [collectionView deleteItemsAtIndexPaths:@[indexPath]];
 }
 
-- (void)collectionView:(UICollectionView *)collectionView enterTarget:(UIView *)didEnterTargetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath
+- (void)collectionView:(UICollectionView *)collectionView dragEnteredTarget:(UIView *)targetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"did enter target [%@] at point:[%@,%@]", didEnterTargetView, @(didEnterPoint.x), @(didEnterPoint.y));
+    NSLog(@"did enter target [%@] at point:[%@,%@]", targetView, @(didEnterPoint.x), @(didEnterPoint.y));
     NSMutableArray *sourceSections = nil;
     NSMutableArray *targetSections = nil;
     if ([collectionView isEqual:_collectionView]) {
@@ -195,7 +195,7 @@
         targetSections = topSections;
     }
     self.externalHoverObject = ((NSArray *)sourceSections[indexPath.section])[indexPath.item];
-    UICollectionView *targetCV = (UICollectionView *)didEnterTargetView;
+    UICollectionView *targetCV = (UICollectionView *)targetView;
     self.externalHoverIndexPath = [targetCV indexPathForItemClosestToPoint:didEnterPoint mustBeValidMoveTarget:YES];
     if (_externalHoverIndexPath) {
         NSMutableArray *targetArray = [targetSections objectAtIndex:_externalHoverIndexPath.section];
@@ -207,10 +207,10 @@
     }
 }
 
-- (void) collectionView:(UICollectionView *)collectionView dragInTarget:(UIView *)didDragInTargetView atPoint:(CGPoint)didDragInPoint fromIndexPath:(NSIndexPath *)indexPath
+- (void) collectionView:(UICollectionView *)collectionView dragUpdateInTarget:(UIView *)targetView atPoint:(CGPoint)didDragInPoint fromIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"did drag in target [%@] at point:[%@,%@]", didDragInTargetView, @(didDragInPoint.x), @(didDragInPoint.y));
-    UICollectionView *targetCV = (UICollectionView *)didDragInTargetView;
+    NSLog(@"did drag in target [%@] at point:[%@,%@]", targetView, @(didDragInPoint.x), @(didDragInPoint.y));
+    UICollectionView *targetCV = (UICollectionView *)targetView;
     NSIndexPath *nextIndexPath = [targetCV indexPathForItemClosestToPoint:didDragInPoint mustBeValidMoveTarget:YES];
     if (!nextIndexPath) {
         NSLog(@"No Valid indexPaths Found! Can't add to dataSource");
@@ -243,10 +243,10 @@
     }
 }
 
-- (void)collectionView:(UICollectionView *)collectionView leaveTarget:(UIView *)didLeaveTargetView fromIndexPath:(NSIndexPath *)indexPath
+- (void)collectionView:(UICollectionView *)collectionView dragLeftTarget:(UIView *)targetView fromIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"did leave target [%@]", didLeaveTargetView);
-    UICollectionView *targetCV = (UICollectionView *)didLeaveTargetView;
+    NSLog(@"did leave target [%@]", targetView);
+    UICollectionView *targetCV = (UICollectionView *)targetView;
     NSMutableArray *targetSections = nil;
     if ([collectionView isEqual:_collectionView]) {
         targetSections = bottomSections;
