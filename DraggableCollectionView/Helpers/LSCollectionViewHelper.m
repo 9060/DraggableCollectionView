@@ -17,6 +17,10 @@ CG_INLINE CGPoint
 _CGPointAdd(CGPoint point1, CGPoint point2) {
     return CGPointMake(point1.x + point2.x, point1.y + point2.y);
 }
+CG_INLINE CGPoint
+_CGPointDiff(CGPoint point1, CGPoint point2) {
+    return CGPointMake(point1.x - point2.x, point1.y - point2.y);
+}
 #endif
 
 typedef NS_ENUM(NSInteger, _ScrollingDirection) {
@@ -32,6 +36,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     NSIndexPath *lastIndexPath;
     UIImageView *mockCell;
     CGPoint mockCenter;
+    CGPoint targetViewTranslation;
     UICollectionViewLayoutAttributes *mockLayoutAttributes;
     CGPoint fingerTranslation;
     CADisplayLink *timer;
@@ -226,7 +231,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     
 	_hasShouldAlterTranslationDelegateMethod = [self.collectionView.dataSource respondsToSelector:@selector(collectionView:alterTranslation:)];
 	
-    NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:[sender locationInView:self.collectionView]];
+    CGPoint ptInCollectionView = [sender locationInView:self.collectionView];
+    NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:ptInCollectionView];
     
     switch (sender.state) {
         case UIGestureRecognizerStateBegan: {
@@ -249,7 +255,18 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 
             mockCenter = mockCell.center;
             
-            [self.collectionView addSubview:mockCell];
+            if ([self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
+                UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
+                                      viewForDraggingFromCollectionView:self.collectionView];
+                [targetView addSubview:mockCell];
+                CGPoint ptInTargetView = [sender locationInView:targetView];
+                targetViewTranslation = _CGPointDiff(ptInTargetView, ptInCollectionView);
+                mockCell.center = _CGPointAdd(mockCenter, targetViewTranslation);
+            }
+            else {
+                [self.collectionView addSubview:mockCell];
+                targetViewTranslation = CGPointMake(0, 0);
+            }
 			if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:transformForDraggingItemAtIndexPath:duration:)]) {
 				NSTimeInterval duration = 0.3;
 				CGAffineTransform transform = [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView transformForDraggingItemAtIndexPath:indexPath duration:&duration];
@@ -340,7 +357,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             [UIView
              animateWithDuration:0.3
              animations:^{
-                 mockCell.center = layoutAttributes.center;
+                 mockCell.center = _CGPointAdd(layoutAttributes.center, targetViewTranslation);
                  mockCell.transform = CGAffineTransformMakeScale(1.f, 1.f);
              }
              completion:^(BOOL finished) {
@@ -389,8 +406,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 		if (_hasShouldAlterTranslationDelegateMethod) {
 			[(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView alterTranslation:&fingerTranslation];
 		}
-        mockCell.center = _CGPointAdd(mockCenter, fingerTranslation);
-        
+        CGPoint translatedCentre = _CGPointAdd(mockCenter, fingerTranslation);
+        mockCell.center = _CGPointAdd(translatedCentre, targetViewTranslation);
+
         // special case for the external target view, if supported
         if ([self.collectionView.dataSource
              conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
@@ -435,11 +453,11 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         if (canScroll) {
             UICollectionViewFlowLayout *scrollLayout = (UICollectionViewFlowLayout*)self.collectionView.collectionViewLayout;
             if([scrollLayout scrollDirection] == UICollectionViewScrollDirectionVertical) {
-                if (mockCell.center.y < (CGRectGetMinY(self.collectionView.bounds) + self.scrollingEdgeInsets.top)) {
+                if (translatedCentre.y < (CGRectGetMinY(self.collectionView.bounds) + self.scrollingEdgeInsets.top)) {
                     [self setupScrollTimerInDirection:_ScrollingDirectionUp];
                 }
                 else {
-                    if (mockCell.center.y > (CGRectGetMaxY(self.collectionView.bounds) - self.scrollingEdgeInsets.bottom)) {
+                    if (translatedCentre.y > (CGRectGetMaxY(self.collectionView.bounds) - self.scrollingEdgeInsets.bottom)) {
                         [self setupScrollTimerInDirection:_ScrollingDirectionDown];
                     }
                     else {
@@ -448,10 +466,10 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 }
             }
             else {
-                if (mockCell.center.x < (CGRectGetMinX(self.collectionView.bounds) + self.scrollingEdgeInsets.left)) {
+                if (translatedCentre.x < (CGRectGetMinX(self.collectionView.bounds) + self.scrollingEdgeInsets.left)) {
                     [self setupScrollTimerInDirection:_ScrollingDirectionLeft];
                 } else {
-                    if (mockCell.center.x > (CGRectGetMaxX(self.collectionView.bounds) - self.scrollingEdgeInsets.right)) {
+                    if (translatedCentre.x > (CGRectGetMaxX(self.collectionView.bounds) - self.scrollingEdgeInsets.right)) {
                         [self setupScrollTimerInDirection:_ScrollingDirectionRight];
                     } else {
                         [self invalidatesScrollTimer];
@@ -516,11 +534,12 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     }
     
     mockCenter  = _CGPointAdd(mockCenter, translation);
-    mockCell.center = _CGPointAdd(mockCenter, fingerTranslation);
+    targetViewTranslation = _CGPointDiff(targetViewTranslation, translation);
+    mockCell.center = _CGPointAdd(_CGPointAdd(mockCenter, fingerTranslation), targetViewTranslation);
     self.collectionView.contentOffset = _CGPointAdd(contentOffset, translation);
 
     // Warp items while scrolling
-    NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:mockCell.center];
+    NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:mockCenter];
     [self warpToIndexPath:indexPath];
 }
 

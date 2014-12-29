@@ -7,8 +7,8 @@
 #import "ViewController.h"
 #import "Cell.h"
 
-#define SECTION_COUNT 2
-#define ITEM_COUNT 5
+#define SECTION_COUNT 5
+#define ITEM_COUNT 10
 
 @interface ViewController ()
 {
@@ -118,6 +118,11 @@
 - (void)collectionView:(UICollectionView *)collectionView willEndDragOfIndex:(NSIndexPath *)indexPath
 {
     NSLog(@"willEndDragOfIndex:%@", indexPath);
+}
+
+- (UIView *) viewForDraggingFromCollectionView:(UICollectionView *)collectionView
+{
+    return self.view;
 }
 
 #pragma mark - UICollectionViewDataSource_ExternalTarget
