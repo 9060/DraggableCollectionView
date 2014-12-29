@@ -18,8 +18,10 @@
 - (NSArray *)externalTargetsForCollectionView:(UICollectionView *)collectionView;
 /*
  *  Called when the user drops a cell over a targetView. It is up to the receiver to add/remove both the sender and the receiver.
+ *  If a valid CGPoint is returned, the mockCell will animate its centre to that location. Point is expected to be in targetView's coordinates,
+ *  and will be translated into coordinates for view returned by viewForDraggingFromCollectionView: if implemented.
  */
-- (void)collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath;
+- (CGPoint)collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath;
 
 @optional
 

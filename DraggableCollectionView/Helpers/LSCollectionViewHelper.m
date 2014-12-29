@@ -313,7 +313,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             if(self.layoutHelper.fromIndexPath == nil) {
                 return;
             }
-            
+
+            CGPoint animationTarget = _CGPointAdd([self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath].center, targetViewTranslation);
             // special case for the external target view, if supported
             if (self.inTargetView && [self.collectionView.dataSource
                                       conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)]) {
@@ -334,19 +335,19 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 CGPoint dropPoint = [sender locationInView:_inTargetView];
                 if ([delegate respondsToSelector:@selector(collectionView:canDropInTarget:atPoint:fromIndexPath:)] == NO
                     || [delegate collectionView:self.collectionView canDropInTarget:_inTargetView atPoint:dropPoint fromIndexPath:fromIndexPath] == YES) {
-                    [delegate collectionView:self.collectionView
-                             didDropInTarget:_inTargetView
-                                     atPoint:dropPoint
-                               fromIndexPath:fromIndexPath];
-                    [mockCell removeFromSuperview];
-                    mockCell = nil;
-                    mockLayoutAttributes = nil;
-                    self.layoutHelper.hideIndexPath = nil;
-                    [self.collectionView.collectionViewLayout invalidateLayout];
+                    animationTarget = [delegate collectionView:self.collectionView
+                                               didDropInTarget:_inTargetView
+                                                       atPoint:dropPoint
+                                                 fromIndexPath:fromIndexPath];
+                    // Translate the point returned into coordinates for the view we are displaying the cell in.
+                    if ([self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
+                        UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
+                                              viewForDraggingFromCollectionView:self.collectionView];
+                        CGPoint ptInTargetView = [sender locationInView:targetView];
+                        animationTarget = _CGPointAdd(animationTarget, _CGPointDiff(ptInTargetView, dropPoint));
+                    }
                 }
-                
                 self.inTargetView = nil;
-                
             }
             else
             {
@@ -368,15 +369,14 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                     self.layoutHelper.fromIndexPath = nil;
                     self.layoutHelper.toIndexPath = nil;
                 } completion:nil];
-                
+                animationTarget = _CGPointAdd([self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath].center, targetViewTranslation);
             }
-            
+
             // Switch mock for cell
-            UICollectionViewLayoutAttributes *layoutAttributes = [self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath];
             [UIView
              animateWithDuration:0.3
              animations:^{
-                 mockCell.center = _CGPointAdd(layoutAttributes.center, targetViewTranslation);
+                 mockCell.center = animationTarget;
                  mockCell.transform = CGAffineTransformMakeScale(1.f, 1.f);
              }
              completion:^(BOOL finished) {

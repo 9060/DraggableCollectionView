@@ -148,7 +148,7 @@
     return ([targetCV indexPathForItemClosestToPoint:dropPoint mustBeValidMoveTarget:YES] != nil);
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
+- (CGPoint) collectionView:(UICollectionView *)collectionView didDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     NSMutableArray *sourceSections = nil;
     NSMutableArray *targetSections = nil;
@@ -171,14 +171,16 @@
     NSIndexPath *targetIndexPath = [targetCV indexPathForItemClosestToPoint:dropPoint mustBeValidMoveTarget:YES];
     if (!targetIndexPath) {
         NSLog(@"No Valid indexPaths Found! Can't move object over. BAILING");
-        return;
+        return dropPoint;
     }
+    CGPoint toReturn = [targetCV cellForItemAtIndexPath:targetIndexPath].center;
     NSMutableArray *targetArray = [targetSections objectAtIndex:targetIndexPath.section];
     [targetArray insertObject:toMove atIndex:targetIndexPath.item];
     [targetCV insertItemsAtIndexPaths:@[targetIndexPath]];
     // Remove
     [data1 removeObjectAtIndex:indexPath.item];
     [collectionView deleteItemsAtIndexPaths:@[indexPath]];
+    return toReturn;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView dragEnteredTarget:(UIView *)targetView atPoint:(CGPoint)didEnterPoint fromIndexPath:(NSIndexPath *)indexPath
