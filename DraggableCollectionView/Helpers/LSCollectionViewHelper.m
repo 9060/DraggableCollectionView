@@ -300,28 +300,29 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             // special case for the external target view, if supported
             if (self.inTargetView)
             {
+                NSIndexPath *fromIndexPath = self.layoutHelper.fromIndexPath;
+                self.layoutHelper.fromIndexPath = nil;
+                self.layoutHelper.toIndexPath = nil;
                 
                 if ([self.collectionView.dataSource
                      conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
                 {
                     id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
                     if ([delegate respondsToSelector:@selector(collectionView:leaveTarget:fromIndexPath:)]) {
-                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                        [delegate collectionView:self.collectionView leaveTarget:_inTargetView fromIndexPath:fromIndexPath];
                     }
 
                     if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
-                        [delegate collectionView:self.collectionView willEndDragOfIndex:self.layoutHelper.fromIndexPath];
+                        [delegate collectionView:self.collectionView willEndDragOfIndex:fromIndexPath];
                     }
                     
                     [delegate collectionView:self.collectionView
                                 didHitTarget:_inTargetView
                                      atPoint:[sender locationInView:_inTargetView]
-                               fromIndexPath:self.layoutHelper.fromIndexPath];
+                               fromIndexPath:fromIndexPath];
                 }
                 
                 self.inTargetView = nil;
-                self.layoutHelper.fromIndexPath = nil;
-                self.layoutHelper.toIndexPath = nil;
                 
                 [mockCell removeFromSuperview];
                 mockCell = nil;
