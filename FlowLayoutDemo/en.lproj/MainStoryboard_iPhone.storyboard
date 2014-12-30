@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5053" systemVersion="13C64" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="2">
     <dependencies>
-        <deployment defaultVersion="1536" identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -17,8 +17,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" minimumZoomScale="0.0" maximumZoomScale="0.0" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="TfD-gB-BLq">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="400"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" minimumZoomScale="0.0" maximumZoomScale="0.0" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="TfD-gB-BLq">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="357"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="Aam-6F-Xfa" customClass="DraggableCollectionViewFlowLayout">
                                     <size key="itemSize" width="100" height="100"/>
@@ -61,26 +61,68 @@
                                     <outlet property="delegate" destination="2" id="c70-ML-JPT"/>
                                 </connections>
                             </collectionView>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="n5c-cc-SGA">
-                                <rect key="frame" x="0.0" y="400" width="320" height="168"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                            </textView>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="e1j-gL-4Rh">
+                                <rect key="frame" x="0.0" y="402" width="320" height="166"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="166" id="yMZ-kO-U3C"/>
+                                </constraints>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="s5c-Ke-PJg" customClass="DraggableCollectionViewFlowLayout">
+                                    <size key="itemSize" width="100" height="100"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Cell" id="A6l-A5-59Q" customClass="Cell">
+                                        <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Wgq-cr-FMp">
+                                                    <rect key="frame" x="29" y="39" width="42" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstItem="Wgq-cr-FMp" firstAttribute="centerX" secondItem="A6l-A5-59Q" secondAttribute="centerX" id="Ptc-pD-tj7"/>
+                                            <constraint firstItem="Wgq-cr-FMp" firstAttribute="top" secondItem="A6l-A5-59Q" secondAttribute="top" constant="39" id="TXQ-uX-ca4"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="label" destination="Wgq-cr-FMp" id="wgE-To-qYs"/>
+                                        </connections>
+                                    </collectionViewCell>
+                                </cells>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="draggable" value="YES"/>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <outlet property="dataSource" destination="2" id="PwF-fZ-ygg"/>
+                                    <outlet property="delegate" destination="2" id="8Kk-U0-GJb"/>
+                                </connections>
+                            </collectionView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="TfD-gB-BLq" firstAttribute="bottom" secondItem="3" secondAttribute="bottom" id="JVF-RH-QRw"/>
+                            <constraint firstAttribute="trailing" secondItem="e1j-gL-4Rh" secondAttribute="trailing" id="72j-qt-p8e"/>
                             <constraint firstItem="TfD-gB-BLq" firstAttribute="trailing" secondItem="3" secondAttribute="trailing" id="PrA-E9-fQJ"/>
+                            <constraint firstItem="e1j-gL-4Rh" firstAttribute="top" secondItem="TfD-gB-BLq" secondAttribute="bottom" constant="45" id="gGV-fJ-nh8"/>
                             <constraint firstItem="TfD-gB-BLq" firstAttribute="top" secondItem="3" secondAttribute="top" id="mpa-96-TDA"/>
+                            <constraint firstItem="e1j-gL-4Rh" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="nlr-Xt-fmT"/>
+                            <constraint firstItem="wIj-RP-GcR" firstAttribute="top" secondItem="e1j-gL-4Rh" secondAttribute="bottom" id="uCL-bq-wYu"/>
                             <constraint firstItem="TfD-gB-BLq" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="vz5-I5-XNj"/>
                         </constraints>
                     </view>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <connections>
                         <outlet property="collectionView" destination="TfD-gB-BLq" id="Wnc-bT-JSm"/>
-                        <outlet property="textView" destination="n5c-cc-SGA" id="bua-M2-zGs"/>
+                        <outlet property="targetCollectionView" destination="e1j-gL-4Rh" id="zOx-qf-EUf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
