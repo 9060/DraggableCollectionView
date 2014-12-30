@@ -30,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4CB620311A5247F700315F9B /* UICollectionViewDataSource_DraggableWithExternalTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UICollectionViewDataSource_DraggableWithExternalTarget.h; sourceTree = "<group>"; };
 		8E947C9F175458980077D957 /* CircleLayoutDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CircleLayoutDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E947CA2175458980077D957 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		8E947CA4175458980077D957 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -138,6 +139,7 @@
 				8E947D0B17545E740077D957 /* UICollectionView+Draggable.h */,
 				8E947D0C17545E740077D957 /* UICollectionView+Draggable.m */,
 				8E947D0D17545E740077D957 /* UICollectionViewDataSource_Draggable.h */,
+				4CB620311A5247F700315F9B /* UICollectionViewDataSource_DraggableWithExternalTarget.h */,
 				8E947D0E17545E740077D957 /* UICollectionViewLayout_Warpable.h */,
 			);
 			path = DraggableCollectionView;

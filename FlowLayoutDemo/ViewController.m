@@ -147,7 +147,6 @@
     return @[self.targetCollectionView];
 }
 
-// Dropping Externally
 - (BOOL) collectionView:(UICollectionView *)collectionView canDropInTarget:(UIView *)targetView atPoint:(CGPoint)dropPoint fromIndexPath:(NSIndexPath *)indexPath
 {
     UICollectionView *targetCV = (UICollectionView *)targetView;
