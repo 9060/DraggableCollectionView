@@ -382,7 +382,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
              animateWithDuration:0.3
              animations:^{
                  mockCell.center = animationTarget;
-                 mockCell.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                 mockCell.transform = CGAffineTransformIdentity;
              }
              completion:^(BOOL finished) {
                  [mockCell removeFromSuperview];

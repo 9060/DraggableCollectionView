@@ -128,6 +128,12 @@
     return self.view;
 }
 
+-(CGAffineTransform)collectionView:(UICollectionView *)collectionView transformForDraggingItemAtIndexPath:(NSIndexPath *)indexPath duration:(NSTimeInterval *)duration
+{
+    *duration = 0.3f;
+    return CGAffineTransformMakeScale(1.2f, 1.2f);
+}
+
 #pragma mark - UICollectionViewDataSource_ExternalTarget
 - (NSArray *)externalTargetsForCollectionView:(UICollectionView *)collectionView
 {
