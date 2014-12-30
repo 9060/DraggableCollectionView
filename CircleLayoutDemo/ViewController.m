@@ -10,8 +10,12 @@
 
 @interface ViewController ()
 {
-    NSMutableArray *data;
+    NSMutableArray *topData;
+    NSMutableArray *bottomData;
 }
+
+@property (nonatomic, weak) IBOutlet UICollectionView *bottomCollectionView;
+
 @end
 
 @implementation ViewController
@@ -20,24 +24,37 @@
 {
     [super viewDidLoad];
     
-    data = [[NSMutableArray alloc] initWithCapacity:20];
+    topData = [NSMutableArray arrayWithCapacity:20];
+    bottomData = [NSMutableArray arrayWithCapacity:20];
     for(int i = 0; i < 20; i++) {
-        [data addObject:@(i)];
+        [topData addObject:[NSString stringWithFormat:@"top-%@",@(i)]];
+        [bottomData addObject:[NSString stringWithFormat:@"bottom-%@",@(i)]];
     }
     
     self.collectionView.collectionViewLayout = [[DraggableCircleLayout alloc] init];
 }
 
+- (NSMutableArray *)dataForCollectionView:(UICollectionView *)collectionView
+{
+    if ([collectionView isEqual:_collectionView]) {
+        return topData;
+    }
+    else if ([collectionView isEqual:_bottomCollectionView]) {
+        return bottomData;
+    }
+    return nil;
+}
+
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return 20;
+    return [self dataForCollectionView:collectionView].count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     Cell *cell = (Cell*)[collectionView dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
-    NSNumber *index = [data objectAtIndex:indexPath.item];
-    cell.label.text = [NSString stringWithFormat:@"%d", index.integerValue];
+    NSString *index = [[self dataForCollectionView:collectionView] objectAtIndex:indexPath.item];
+    cell.label.text = index;
     
     return cell;
 }
@@ -47,8 +64,9 @@
     return YES;
 }
 
-- (void)collectionView:(LSCollectionViewHelper *)collectionView moveItemAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
+- (void)collectionView:(UICollectionView *)collectionView moveItemAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
+    NSMutableArray *data = [self dataForCollectionView:collectionView];
     NSNumber *index = [data objectAtIndex:fromIndexPath.item];
     [data removeObjectAtIndex:fromIndexPath.item];
     [data insertObject:index atIndex:toIndexPath.item];

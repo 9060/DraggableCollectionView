@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="12D78" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" promptedForUpgradeToXcode5="NO" initialViewController="2">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="2083"/>
+        <deployment identifier="iOS"/>
+        <development version="5000" identifier="xcode"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="4">
             <objects>
                 <viewController id="2" customClass="ViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="aQV-7S-OdI"/>
+                        <viewControllerLayoutGuide type="bottom" id="18P-aQ-xSL"/>
+                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="5">
-                        <rect key="frame" x="0.0" y="20" width="768" height="1004"/>
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" minimumZoomScale="0.0" maximumZoomScale="0.0" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="mrU-yj-aAL">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="552"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="552" id="V0E-Gl-BWJ"/>
+                                </constraints>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="B42-Pp-HlX" customClass="DraggableCollectionViewFlowLayout">
                                     <size key="itemSize" width="100" height="100"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -28,7 +38,11 @@
                                             <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wFI-aL-DCf">
+                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" useAutomaticPreferredMaxLayoutWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wFI-aL-DCf">
+                                                    <rect key="frame" x="29" y="39" width="42" height="21"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="21" id="QiH-ti-jTt"/>
+                                                    </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
@@ -38,8 +52,8 @@
                                         </view>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
-                                            <constraint firstItem="wFI-aL-DCf" firstAttribute="centerX" secondItem="yCm-ka-SsA" secondAttribute="centerX" type="default" id="9WS-2e-IZs"/>
-                                            <constraint firstItem="wFI-aL-DCf" firstAttribute="top" secondItem="yCm-ka-SsA" secondAttribute="top" constant="39" id="yJL-og-Q2t"/>
+                                            <constraint firstItem="wFI-aL-DCf" firstAttribute="top" secondItem="yCm-ka-SsA" secondAttribute="top" constant="39" id="Hlh-jA-KQn"/>
+                                            <constraint firstItem="wFI-aL-DCf" firstAttribute="centerX" secondItem="yCm-ka-SsA" secondAttribute="centerX" id="VBg-Qc-jpU"/>
                                         </constraints>
                                         <connections>
                                             <outlet property="label" destination="wFI-aL-DCf" id="uGS-i6-oNK"/>
@@ -54,16 +68,66 @@
                                     <outlet property="delegate" destination="2" id="QFd-Yy-gAp"/>
                                 </connections>
                             </collectionView>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="FUN-f0-sSj">
+                                <rect key="frame" x="0.0" y="630" width="768" height="394"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="9YP-TO-x3d" customClass="DraggableCollectionViewFlowLayout">
+                                    <size key="itemSize" width="100" height="100"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Cell" id="ZRk-VE-ujl" customClass="Cell">
+                                        <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" useAutomaticPreferredMaxLayoutWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="o8C-Bo-iBq">
+                                                    <rect key="frame" x="29" y="39" width="42" height="21"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="21" id="KJU-QS-LK1"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstItem="o8C-Bo-iBq" firstAttribute="top" secondItem="ZRk-VE-ujl" secondAttribute="top" constant="39" id="LOA-hZ-z7T"/>
+                                            <constraint firstItem="o8C-Bo-iBq" firstAttribute="centerX" secondItem="ZRk-VE-ujl" secondAttribute="centerX" id="eF8-AJ-FHx"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="label" destination="o8C-Bo-iBq" id="kmd-GE-Y8n"/>
+                                        </connections>
+                                    </collectionViewCell>
+                                </cells>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="draggable" value="YES"/>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <outlet property="dataSource" destination="2" id="aIg-Ue-skn"/>
+                                    <outlet property="delegate" destination="2" id="4fp-k4-DHE"/>
+                                </connections>
+                            </collectionView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="mrU-yj-aAL" firstAttribute="top" secondItem="5" secondAttribute="top" type="default" id="7Ej-O5-MZa"/>
-                            <constraint firstItem="mrU-yj-aAL" firstAttribute="bottom" secondItem="5" secondAttribute="bottom" type="default" id="8P5-Qc-dSR"/>
-                            <constraint firstItem="mrU-yj-aAL" firstAttribute="leading" secondItem="5" secondAttribute="leading" type="default" id="99O-m7-OYU"/>
-                            <constraint firstItem="mrU-yj-aAL" firstAttribute="trailing" secondItem="5" secondAttribute="trailing" type="default" id="HSl-ji-SdO"/>
+                            <constraint firstItem="FUN-f0-sSj" firstAttribute="top" secondItem="mrU-yj-aAL" secondAttribute="bottom" constant="78" id="1Uh-9L-L2W"/>
+                            <constraint firstItem="mrU-yj-aAL" firstAttribute="trailing" secondItem="FUN-f0-sSj" secondAttribute="trailing" id="MNn-fY-eNK"/>
+                            <constraint firstItem="FUN-f0-sSj" firstAttribute="leading" secondItem="5" secondAttribute="leading" id="Qie-eq-atT"/>
+                            <constraint firstAttribute="bottom" secondItem="FUN-f0-sSj" secondAttribute="bottom" id="WAG-QZ-Kyr"/>
+                            <constraint firstItem="mrU-yj-aAL" firstAttribute="top" secondItem="5" secondAttribute="top" id="aTX-r6-Iqi"/>
+                            <constraint firstItem="FUN-f0-sSj" firstAttribute="leading" secondItem="mrU-yj-aAL" secondAttribute="leading" id="ist-BF-bKv"/>
+                            <constraint firstAttribute="trailing" secondItem="FUN-f0-sSj" secondAttribute="trailing" id="xDr-pU-Uo1"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="bottomCollectionView" destination="FUN-f0-sSj" id="ug0-Ws-Gmq"/>
                         <outlet property="collectionView" destination="mrU-yj-aAL" id="W0n-Rg-OUf"/>
                     </connections>
                 </viewController>
@@ -71,40 +135,8 @@
             </objects>
         </scene>
     </scenes>
-    <classes>
-        <class className="Cell" superclassName="UICollectionViewCell">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/Cell.h"/>
-            <relationships>
-                <relationship kind="outlet" name="label" candidateClass="UILabel"/>
-            </relationships>
-        </class>
-        <class className="DraggableCollectionViewFlowLayout" superclassName="UICollectionViewFlowLayout">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/DraggableCollectionViewFlowLayout.h"/>
-        </class>
-        <class className="NSLayoutConstraint" superclassName="NSObject">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/NSLayoutConstraint.h"/>
-        </class>
-        <class className="UICollectionReusableView" superclassName="UIView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/UICollectionReusableView.h"/>
-        </class>
-        <class className="UICollectionViewCell" superclassName="UICollectionReusableView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/UICollectionViewCell.h"/>
-        </class>
-        <class className="UICollectionViewFlowLayout" superclassName="UICollectionViewLayout">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/UICollectionViewFlowLayout.h"/>
-        </class>
-        <class className="UICollectionViewLayout" superclassName="NSObject">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/UICollectionViewLayout.h"/>
-        </class>
-        <class className="ViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/ViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="collectionView" candidateClass="UICollectionView"/>
-            </relationships>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
-        <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
+        <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
