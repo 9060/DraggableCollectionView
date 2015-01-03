@@ -242,6 +242,17 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     return indexPath;
 }
 
+- (CGPoint) animationTargetForHiddenIndexPath:(CGPoint)defaultPoint
+{
+    NSIndexPath *hideIP = self.layoutHelper.hideIndexPath;
+    NSInteger numSec = [self.collectionView.dataSource numberOfSectionsInCollectionView:self.collectionView];
+    if (hideIP.section < numSec && hideIP.item < [self.collectionView.dataSource collectionView:self.collectionView numberOfItemsInSection:hideIP.section]) {
+        defaultPoint = [self.collectionView layoutAttributesForItemAtIndexPath:hideIP].center;
+    }
+    CGPoint animationTarget = _CGPointAdd(defaultPoint, targetViewTranslation);
+    return animationTarget;
+}
+
 - (void)handleLongPressGesture:(UILongPressGestureRecognizer *)sender
 {
     if (sender.state == UIGestureRecognizerStateChanged) {
@@ -319,7 +330,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 return;
             }
 
-            CGPoint animationTarget = _CGPointAdd([self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath].center, targetViewTranslation);
+            CGPoint animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
             // special case for the external target view, if supported
             if (self.inTargetView && [self.collectionView.dataSource
                                       conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)]) {
@@ -374,7 +385,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                     self.layoutHelper.fromIndexPath = nil;
                     self.layoutHelper.toIndexPath = nil;
                 } completion:nil];
-                animationTarget = _CGPointAdd([self.collectionView layoutAttributesForItemAtIndexPath:self.layoutHelper.hideIndexPath].center, targetViewTranslation);
+                animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
             }
 
             // Switch mock for cell
