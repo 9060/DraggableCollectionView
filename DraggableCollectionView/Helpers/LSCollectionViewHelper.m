@@ -367,20 +367,17 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
             else
             {
-                if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES)
+                id<UICollectionViewDataSource_Draggable> delegate = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
+                if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES)
                 {
-                    [(id<UICollectionViewDataSource_Draggable>)
-                     self.collectionView.dataSource collectionView:self.collectionView
-                                                willEndDragOfIndex:self.layoutHelper.fromIndexPath];
+                    [delegate collectionView:self.collectionView willEndDragOfIndex:self.layoutHelper.fromIndexPath];
                 }
                 
-                // Tell the data source to move the item
-                [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView
-                                                                                     moveItemAtIndexPath:self.layoutHelper.fromIndexPath
-                                                                                             toIndexPath:self.layoutHelper.toIndexPath];
-                
-                // Move the item
                 [self.collectionView performBatchUpdates:^{
+                    // Tell the data source to move the item
+                    [delegate collectionView:self.collectionView
+                         moveItemAtIndexPath:self.layoutHelper.fromIndexPath
+                                 toIndexPath:self.layoutHelper.toIndexPath];
                     [self.collectionView moveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:self.layoutHelper.toIndexPath];
                     self.layoutHelper.fromIndexPath = nil;
                     self.layoutHelper.toIndexPath = nil;
