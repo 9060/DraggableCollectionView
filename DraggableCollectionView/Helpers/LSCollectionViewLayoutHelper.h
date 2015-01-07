@@ -17,4 +17,5 @@
 @property (strong, nonatomic) NSIndexPath *fromIndexPath;
 @property (strong, nonatomic) NSIndexPath *toIndexPath;
 @property (strong, nonatomic) NSIndexPath *hideIndexPath;
+@property (nonatomic, assign) BOOL stickyHeaders;
 @end

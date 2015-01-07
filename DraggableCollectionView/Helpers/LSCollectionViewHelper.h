@@ -17,6 +17,7 @@
 @property (nonatomic, assign) UIEdgeInsets scrollingEdgeInsets;
 @property (nonatomic, assign) CGFloat scrollingSpeed;
 @property (nonatomic, assign) BOOL enabled;
+@property (nonatomic, assign) BOOL stickyHeaders;
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget;

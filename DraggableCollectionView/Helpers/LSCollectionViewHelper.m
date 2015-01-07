@@ -123,6 +123,12 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     _panPressGestureRecognizer.enabled = canWarp && enabled;
 }
 
+- (void) setStickyHeaders:(BOOL)stickyHeaders
+{
+    _stickyHeaders = stickyHeaders;
+    self.layoutHelper.stickyHeaders = stickyHeaders;
+}
+
 - (UIImage *)imageFromCell:(UICollectionViewCell *)cell {
     UIGraphicsBeginImageContextWithOptions(cell.bounds.size, NO, 0);
 	[cell.layer renderInContext:UIGraphicsGetCurrentContext()];

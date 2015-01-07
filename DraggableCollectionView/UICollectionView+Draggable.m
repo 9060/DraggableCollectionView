@@ -61,6 +61,16 @@ static const char * LSCollectionViewHelperObjectKey = "LSCollectionViewHelper";
     [self getHelper].scrollingSpeed = scrollingSpeed;
 }
 
+- (BOOL)stickyHeaders
+{
+    return [self getHelper].stickyHeaders;
+}
+
+- (void)setStickyHeaders:(BOOL)stickyHeaders
+{
+    [self getHelper].stickyHeaders = stickyHeaders;
+}
+
 - (NSIndexPath *) indexPathForItemClosestToPoint:(CGPoint)point
 {
     return [[self getHelper] indexPathForItemClosestToPoint:point];
