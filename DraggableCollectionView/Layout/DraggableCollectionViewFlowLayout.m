@@ -57,9 +57,9 @@
         NSIndexPath *indexPath = [NSIndexPath indexPathForItem:0 inSection:idx];
         
         UICollectionViewLayoutAttributes *layoutAttributes = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader atIndexPath:indexPath];
-        
-        [answer addObject:layoutAttributes];
-        
+        if (layoutAttributes) { // <-- If we don't have a section header this will be nil...
+            [answer addObject:layoutAttributes];
+        }
     }];
     
     for (UICollectionViewLayoutAttributes *layoutAttributes in answer) {
