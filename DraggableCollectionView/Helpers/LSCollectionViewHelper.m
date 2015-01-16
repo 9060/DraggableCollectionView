@@ -310,7 +310,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 				NSTimeInterval duration = 0.3;
 				CGAffineTransform transform = [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView transformForDraggingItemAtIndexPath:indexPath duration:&duration];
 				[UIView animateWithDuration:duration animations:^{
-					mockCell.transform = transform;
+					self->mockCell.transform = transform;
 				} completion:nil];
 			}
             
@@ -392,19 +392,18 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             }
 
             // Switch mock for cell
-            [UIView
-             animateWithDuration:0.3
-             animations:^{
-                 mockCell.center = animationTarget;
-                 mockCell.transform = CGAffineTransformIdentity;
-             }
-             completion:^(BOOL finished) {
-                 [mockCell removeFromSuperview];
-                 mockCell = nil;
-                 mockLayoutAttributes = nil;
-                 self.layoutHelper.hideIndexPath = nil;
-                 [self.collectionView.collectionViewLayout invalidateLayout];
-             }];
+            [UIView animateWithDuration:0.3
+                             animations:^{
+                                 self->mockCell.center = animationTarget;
+                                 self->mockCell.transform = CGAffineTransformIdentity;
+                             }
+                             completion:^(BOOL finished) {
+                                 [self->mockCell removeFromSuperview];
+                                 self->mockCell = nil;
+                                 self->mockLayoutAttributes = nil;
+                                 self.layoutHelper.hideIndexPath = nil;
+                                 [self.collectionView.collectionViewLayout invalidateLayout];
+                             }];
 
             // Reset
             [self invalidatesScrollTimer];

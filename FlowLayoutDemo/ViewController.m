@@ -262,9 +262,9 @@
         targetSections = topSections;
     }
     [targetSections enumerateObjectsUsingBlock:^(NSMutableArray *section, NSUInteger sectionIndex, BOOL *stop) {
-        NSInteger index = [section indexOfObject:_externalHoverObject];
+        NSInteger index = [section indexOfObject:self->_externalHoverObject];
         if (index != NSNotFound) {
-            [section removeObject:_externalHoverObject];
+            [section removeObject:self->_externalHoverObject];
             [targetCV deleteItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:sectionIndex]]];
             *stop = YES;
         }
