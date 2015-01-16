@@ -338,6 +338,7 @@
 		8E947CC6175458980077D957 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FlowLayoutDemo/FlowLayoutDemo-Prefix.pch";
 				INFOPLIST_FILE = "FlowLayoutDemo/FlowLayoutDemo-Info.plist";
@@ -350,6 +351,7 @@
 		8E947CC7175458980077D957 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FlowLayoutDemo/FlowLayoutDemo-Prefix.pch";
 				INFOPLIST_FILE = "FlowLayoutDemo/FlowLayoutDemo-Info.plist";
