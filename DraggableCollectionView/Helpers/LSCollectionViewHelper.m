@@ -476,7 +476,6 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     
 	_hasShouldAlterTranslationDelegateMethod = [self.collectionView.dataSource respondsToSelector:@selector(collectionView:alterTranslation:)];
 	
-    CGPoint ptInCollectionView = [sender locationInView:self.collectionView];
     NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:[sender locationInView:self.collectionView]];
     
     switch (sender.state) {
