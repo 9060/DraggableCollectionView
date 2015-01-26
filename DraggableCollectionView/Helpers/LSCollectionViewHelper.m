@@ -94,6 +94,162 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 	[collectionView removeObserver:self forKeyPath:@"collectionViewLayout"];
 }
 
+-(BOOL)beginDragAt:(NSIndexPath *)indexPath {
+    return [self beginDragAt:indexPath sender:nil];
+}
+
+-(BOOL)beginDragAt:(NSIndexPath *)indexPath sender:(UIGestureRecognizer *)sender
+{
+    if (self.layoutHelper.fromIndexPath != nil) {
+        return NO;
+    }
+
+    if (![(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource
+          collectionView:self.collectionView
+          canMoveItemAtIndexPath:indexPath])
+    {
+        return NO;
+    }
+    
+    // Create mock cell to drag around
+    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
+    CGRect frame = cell.frame;
+    cell.highlighted = NO;
+    [mockCell removeFromSuperview];
+    mockCell = [[UIImageView alloc] initWithFrame:frame];
+    mockCell.image = [self imageFromCell:cell];
+    
+    mockCenter = mockCell.center;
+    
+    if (sender != nil && [self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
+        UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
+                              viewForDraggingFromCollectionView:self.collectionView];
+        [targetView addSubview:mockCell];
+        CGPoint ptInTargetView = [sender locationInView:targetView];
+        CGPoint ptInCollectionView = [sender locationInView:self.collectionView];
+        targetViewTranslation = _CGPointDiff(ptInTargetView, ptInCollectionView);
+        mockCell.center = _CGPointAdd(mockCenter, targetViewTranslation);
+    }
+    else {
+        [self.collectionView addSubview:mockCell];
+        targetViewTranslation = CGPointMake(0, 0);
+    }
+    if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:transformForDraggingItemAtIndexPath:duration:)]) {
+        NSTimeInterval duration = 0.3;
+        CGAffineTransform transform = [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView transformForDraggingItemAtIndexPath:indexPath duration:&duration];
+        [UIView animateWithDuration:duration animations:^{
+            self->mockCell.transform = transform;
+        } completion:nil];
+    }
+    
+    self.inTargetView = nil;
+    
+    if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:willBeginDragOfIndex:)] == YES)
+    {
+        [(id<UICollectionViewDataSource_Draggable>)
+         self.collectionView.dataSource collectionView:self.collectionView
+         willBeginDragOfIndex:indexPath];
+    }
+    
+    // Start warping
+    lastIndexPath = indexPath;
+    self.layoutHelper.fromIndexPath = indexPath;
+    self.layoutHelper.hideIndexPath = indexPath;
+    self.layoutHelper.toIndexPath = indexPath;
+    [self.collectionView.collectionViewLayout invalidateLayout];
+
+    return YES;
+}
+
+-(void)endDrag {
+    [self endDrag:nil];
+}
+
+-(void)endDrag:(UIGestureRecognizer *)sender
+{
+    NSIndexPath * from = self.layoutHelper.fromIndexPath;
+    NSIndexPath * to = self.layoutHelper.toIndexPath;
+    
+    if(from == nil || to == nil)
+    {
+        return;
+    }
+    
+    CGPoint ptInCollectionView = [sender locationInView:self.collectionView];
+    CGPoint animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
+    // special case for the external target view, if supported
+    if (self.inTargetView && [self.collectionView.dataSource
+                              conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)]) {
+        id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
+        
+        NSIndexPath *fromIndexPath = self.layoutHelper.fromIndexPath;
+        self.layoutHelper.fromIndexPath = nil;
+        self.layoutHelper.toIndexPath = nil;
+        
+        if ([delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
+            [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:fromIndexPath];
+        }
+        
+        if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
+            [delegate collectionView:self.collectionView willEndDragOfIndex:fromIndexPath];
+        }
+        
+        CGPoint dropPoint = [sender locationInView:_inTargetView];
+        if ([delegate respondsToSelector:@selector(collectionView:canDropInTarget:atPoint:fromIndexPath:)] == NO
+            || [delegate collectionView:self.collectionView canDropInTarget:_inTargetView atPoint:dropPoint fromIndexPath:fromIndexPath] == YES) {
+            animationTarget = [delegate collectionView:self.collectionView
+                                       didDropInTarget:_inTargetView
+                                               atPoint:dropPoint
+                                         fromIndexPath:fromIndexPath];
+            // Translate the point returned into coordinates for the view we are displaying the cell in.
+            if ([self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
+                UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
+                                      viewForDraggingFromCollectionView:self.collectionView];
+                CGPoint ptInTargetView = [sender locationInView:targetView];
+                animationTarget = _CGPointAdd(animationTarget, _CGPointDiff(ptInTargetView, dropPoint));
+            }
+        }
+        self.inTargetView = nil;
+    }
+    else
+    {
+        id<UICollectionViewDataSource_Draggable> delegate = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
+        if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES)
+        {
+            [delegate collectionView:self.collectionView willEndDragOfIndex:self.layoutHelper.fromIndexPath];
+        }
+        
+        [self.collectionView performBatchUpdates:^{
+            // Tell the data source to move the item
+            [delegate collectionView:self.collectionView
+                 moveItemAtIndexPath:self.layoutHelper.fromIndexPath
+                         toIndexPath:self.layoutHelper.toIndexPath];
+            [self.collectionView moveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:self.layoutHelper.toIndexPath];
+            self.layoutHelper.fromIndexPath = nil;
+            self.layoutHelper.toIndexPath = nil;
+        } completion:nil];
+        animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
+    }
+    
+    // Switch mock for cell
+    [UIView animateWithDuration:0.3
+                     animations:^{
+                         self->mockCell.center = animationTarget;
+                         self->mockCell.transform = CGAffineTransformIdentity;
+                     }
+                     completion:^(BOOL finished) {
+                         [self->mockCell removeFromSuperview];
+                         self->mockCell = nil;
+                         self->mockLayoutAttributes = nil;
+                         self.layoutHelper.hideIndexPath = nil;
+                         [self.collectionView.collectionViewLayout invalidateLayout];
+                     }];
+    
+    // Reset
+    [self invalidatesScrollTimer];
+    lastIndexPath = nil;
+}
+
 - (LSCollectionViewLayoutHelper *)layoutHelper
 {
     return [(id <UICollectionViewLayout_Warpable>)self.collectionView.collectionViewLayout layoutHelper];
@@ -113,6 +269,25 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     }
     else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+- (void)setDragOnTouch:(BOOL)dragOnTouch
+{
+    if (_dragOnTouch != dragOnTouch) {
+        _dragOnTouch = dragOnTouch;
+
+        UILongPressGestureRecognizer* gestureRecognizer = (UILongPressGestureRecognizer*)_longPressGestureRecognizer;
+        if (dragOnTouch) {
+            // Instead of starting the drag on a long press, start the drag based
+            // on delegate respond to first touch.
+            gestureRecognizer.minimumPressDuration = 0.05;
+            gestureRecognizer.delegate = self;
+        }
+        else {
+            gestureRecognizer.minimumPressDuration = 0.5;
+            gestureRecognizer.delegate = nil;
+        }
     }
 }
 
@@ -156,6 +331,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
     if([gestureRecognizer isEqual:_panPressGestureRecognizer]) {
+        
         return self.layoutHelper.fromIndexPath != nil;
     }
     return YES;
@@ -163,15 +339,45 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    if ([gestureRecognizer isEqual:_longPressGestureRecognizer]) {
+    if ([gestureRecognizer isEqual:_longPressGestureRecognizer])
+    {
         return [otherGestureRecognizer isEqual:_panPressGestureRecognizer];
     }
     
-    if ([gestureRecognizer isEqual:_panPressGestureRecognizer]) {
+    if ([gestureRecognizer isEqual:_panPressGestureRecognizer])
+    {
         return [otherGestureRecognizer isEqual:_longPressGestureRecognizer];
     }
     
     return NO;
+}
+
+// called before touchesBegan:withEvent: is called on the gesture recognizer for a new touch.
+// return NO to prevent the gesture recognizer from seeing this touch
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    id<UICollectionViewDataSource_Draggable> dataSource = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
+    if (self.dragOnTouch
+        && [gestureRecognizer isEqual:_longPressGestureRecognizer]
+        && [dataSource respondsToSelector:@selector(collectionView:canMoveItemAtIndexPath:)]) {
+
+        CGPoint pt = [touch locationInView:self.collectionView];
+        NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:pt];
+
+        if (indexPath) {
+            if ([dataSource collectionView:self.collectionView canMoveItemAtIndexPath:indexPath]) {
+                // Allow granular control on which taps will trigger.
+                if ([dataSource respondsToSelector:@selector(collectionView:shouldTouchBeginDrag:atIndexPath:)]) {
+                    return [dataSource collectionView:self.collectionView shouldTouchBeginDrag:touch atIndexPath:indexPath];
+                } else {
+                    return YES;
+                }
+            }
+        }
+        return NO;
+    }
+
+    return YES;
 }
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point
@@ -271,145 +477,28 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 	_hasShouldAlterTranslationDelegateMethod = [self.collectionView.dataSource respondsToSelector:@selector(collectionView:alterTranslation:)];
 	
     CGPoint ptInCollectionView = [sender locationInView:self.collectionView];
-    NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:ptInCollectionView];
+    NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:[sender locationInView:self.collectionView]];
     
     switch (sender.state) {
         case UIGestureRecognizerStateBegan: {
             if (indexPath == nil) {
                 return;
             }
-            if (![(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource
-                  collectionView:self.collectionView
-                  canMoveItemAtIndexPath:indexPath]) {
-                return;
-            }
             
-            // Create mock cell to drag around
-            UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
-            CGRect frame = cell.frame;
-            cell.highlighted = NO;
-            [mockCell removeFromSuperview];
-            mockCell = [[UIImageView alloc] initWithFrame:frame];
-            mockCell.image = [self imageFromCell:cell];
-
-            mockCenter = mockCell.center;
+            [self beginDragAt:indexPath];
             
-            if ([self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
-                UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
-                                      viewForDraggingFromCollectionView:self.collectionView];
-                [targetView addSubview:mockCell];
-                CGPoint ptInTargetView = [sender locationInView:targetView];
-                targetViewTranslation = _CGPointDiff(ptInTargetView, ptInCollectionView);
-                mockCell.center = _CGPointAdd(mockCenter, targetViewTranslation);
-            }
-            else {
-                [self.collectionView addSubview:mockCell];
-                targetViewTranslation = CGPointMake(0, 0);
-            }
-			if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:transformForDraggingItemAtIndexPath:duration:)]) {
-				NSTimeInterval duration = 0.3;
-				CGAffineTransform transform = [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView transformForDraggingItemAtIndexPath:indexPath duration:&duration];
-				[UIView animateWithDuration:duration animations:^{
-					self->mockCell.transform = transform;
-				} completion:nil];
-			}
-            
-            self.inTargetView = nil;
-            
-            if ([self.collectionView.dataSource respondsToSelector:@selector(collectionView:willBeginDragOfIndex:)] == YES)
-            {
-                [(id<UICollectionViewDataSource_Draggable>)
-                 self.collectionView.dataSource collectionView:self.collectionView
-                                          willBeginDragOfIndex:indexPath];
-            }
-            
-            // Start warping
-            lastIndexPath = indexPath;
-            self.layoutHelper.fromIndexPath = indexPath;
-            self.layoutHelper.hideIndexPath = indexPath;
-            self.layoutHelper.toIndexPath = indexPath;
-            [self.collectionView.collectionViewLayout invalidateLayout];
         } break;
+            
         case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled: {
-            if(self.layoutHelper.fromIndexPath == nil) {
-                return;
-            }
-
-            CGPoint animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
-            // special case for the external target view, if supported
-            if (self.inTargetView && [self.collectionView.dataSource
-                                      conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)]) {
-                id<UICollectionViewDataSource_DraggableWithExternalTarget>delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
-
-                NSIndexPath *fromIndexPath = self.layoutHelper.fromIndexPath;
-                self.layoutHelper.fromIndexPath = nil;
-                self.layoutHelper.toIndexPath = nil;
-                
-                if ([delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:fromIndexPath];
-                }
-                
-                if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES) {
-                    [delegate collectionView:self.collectionView willEndDragOfIndex:fromIndexPath];
-                }
-                
-                CGPoint dropPoint = [sender locationInView:_inTargetView];
-                if ([delegate respondsToSelector:@selector(collectionView:canDropInTarget:atPoint:fromIndexPath:)] == NO
-                    || [delegate collectionView:self.collectionView canDropInTarget:_inTargetView atPoint:dropPoint fromIndexPath:fromIndexPath] == YES) {
-                    animationTarget = [delegate collectionView:self.collectionView
-                                               didDropInTarget:_inTargetView
-                                                       atPoint:dropPoint
-                                                 fromIndexPath:fromIndexPath];
-                    // Translate the point returned into coordinates for the view we are displaying the cell in.
-                    if ([self.collectionView.dataSource respondsToSelector:@selector(viewForDraggingFromCollectionView:)]) {
-                        UIView *targetView = [(id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource
-                                              viewForDraggingFromCollectionView:self.collectionView];
-                        CGPoint ptInTargetView = [sender locationInView:targetView];
-                        animationTarget = _CGPointAdd(animationTarget, _CGPointDiff(ptInTargetView, dropPoint));
-                    }
-                }
-                self.inTargetView = nil;
-            }
-            else
+        case UIGestureRecognizerStateCancelled:
+        {
+            if(self.layoutHelper.fromIndexPath != nil)
             {
-                id<UICollectionViewDataSource_Draggable> delegate = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
-                if ([delegate respondsToSelector:@selector(collectionView:willEndDragOfIndex:)] == YES)
-                {
-                    [delegate collectionView:self.collectionView willEndDragOfIndex:self.layoutHelper.fromIndexPath];
-                }
-                
-                [self.collectionView performBatchUpdates:^{
-                    // Tell the data source to move the item
-                    [delegate collectionView:self.collectionView
-                         moveItemAtIndexPath:self.layoutHelper.fromIndexPath
-                                 toIndexPath:self.layoutHelper.toIndexPath];
-                    [self.collectionView moveItemAtIndexPath:self.layoutHelper.fromIndexPath toIndexPath:self.layoutHelper.toIndexPath];
-                    self.layoutHelper.fromIndexPath = nil;
-                    self.layoutHelper.toIndexPath = nil;
-                } completion:nil];
-                animationTarget = [self animationTargetForHiddenIndexPath:ptInCollectionView];
+                [self endDrag:sender];
             }
+            break;
+        }
 
-            // Switch mock for cell
-            [UIView animateWithDuration:0.3
-                             animations:^{
-                                 self->mockCell.center = animationTarget;
-                                 self->mockCell.transform = CGAffineTransformIdentity;
-                             }
-                             completion:^(BOOL finished) {
-                                 [self->mockCell removeFromSuperview];
-                                 self->mockCell = nil;
-                                 self->mockLayoutAttributes = nil;
-                                 self.layoutHelper.hideIndexPath = nil;
-                                 [self.collectionView.collectionViewLayout invalidateLayout];
-                             }];
-
-            // Reset
-            [self invalidatesScrollTimer];
-            lastIndexPath = nil;
-            
-        } break;
         default: break;
     }
 }
@@ -437,67 +526,71 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 
 - (void)handlePanGesture:(UIPanGestureRecognizer *)sender
 {
-    if(sender.state == UIGestureRecognizerStateChanged) {
-        // Move mock to match finger
-        fingerTranslation = [sender translationInView:self.collectionView.superview];
-		if (_hasShouldAlterTranslationDelegateMethod) {
-			[(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView alterTranslation:&fingerTranslation];
-		}
-        CGPoint translatedCentre = _CGPointAdd(mockCenter, fingerTranslation);
-        mockCell.center = _CGPointAdd(translatedCentre, targetViewTranslation);
-
-        // special case for the external target view, if supported
-        if ([self.collectionView.dataSource conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
+    switch (sender.state)
+    {
+        case UIGestureRecognizerStateChanged:
         {
-            id<UICollectionViewDataSource_DraggableWithExternalTarget> delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
-            __block UIView *nextTargetView = nil;
-            CGPoint pt = [sender locationInView:self.collectionView.superview];
-            [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
-                if (CGRectContainsPoint(targetView.frame, pt)) {
-                    nextTargetView = targetView;
-                    *stop = YES;
-                }
-            }];
+            // Move mock to match finger
+            fingerTranslation = [sender translationInView:self.collectionView.superview];
+            if (_hasShouldAlterTranslationDelegateMethod) {
+                [(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource collectionView:self.collectionView alterTranslation:&fingerTranslation];
+            }
+            CGPoint translatedCentre = _CGPointAdd(mockCenter, fingerTranslation);
+            mockCell.center = _CGPointAdd(translatedCentre, targetViewTranslation);
             
-            if (nextTargetView) {
-                if (![nextTargetView isEqual:_inTargetView]) {
+            // special case for the external target view, if supported
+            if ([self.collectionView.dataSource conformsToProtocol:@protocol(UICollectionViewDataSource_DraggableWithExternalTarget)])
+            {
+                id<UICollectionViewDataSource_DraggableWithExternalTarget> delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
+                __block UIView *nextTargetView = nil;
+                CGPoint pt = [sender locationInView:self.collectionView.superview];
+                [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
+                    if (CGRectContainsPoint(targetView.frame, pt)) {
+                        nextTargetView = targetView;
+                        *stop = YES;
+                    }
+                }];
+                
+                if (nextTargetView) {
+                    if (![nextTargetView isEqual:_inTargetView]) {
+                        if (_inTargetView
+                            && [delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
+                            [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
+                        }
+                        if ([delegate respondsToSelector:@selector(collectionView:dragEnteredTarget:atPoint:fromIndexPath:)]) {
+                            [delegate collectionView:self.collectionView dragEnteredTarget:nextTargetView
+                                             atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
+                        }
+                    }
+                    else if ([delegate respondsToSelector:@selector(collectionView:dragUpdateInTarget:atPoint:fromIndexPath:)]) {
+                        [delegate collectionView:self.collectionView dragUpdateInTarget:nextTargetView
+                                         atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
+                    }
+                    self.inTargetView = nextTargetView;
+                }
+                else {
                     if (_inTargetView
                         && [delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
                         [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
                     }
-                    if ([delegate respondsToSelector:@selector(collectionView:dragEnteredTarget:atPoint:fromIndexPath:)]) {
-                        [delegate collectionView:self.collectionView dragEnteredTarget:nextTargetView
-                                         atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
-                    }
+                    self.inTargetView = nil;
                 }
-                else if ([delegate respondsToSelector:@selector(collectionView:dragUpdateInTarget:atPoint:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView dragUpdateInTarget:nextTargetView
-                                     atPoint:[sender locationInView:nextTargetView] fromIndexPath:self.layoutHelper.fromIndexPath];
-                }
-                self.inTargetView = nextTargetView;
             }
-            else {
-                if (_inTargetView
-                    && [delegate respondsToSelector:@selector(collectionView:dragLeftTarget:fromIndexPath:)]) {
-                    [delegate collectionView:self.collectionView dragLeftTarget:_inTargetView fromIndexPath:self.layoutHelper.fromIndexPath];
-                }
-                self.inTargetView = nil;
-            }
-        }
-        
-        // Scroll when necessary
-        if (canScroll) {
-            UICollectionViewFlowLayout *scrollLayout = (UICollectionViewFlowLayout*)self.collectionView.collectionViewLayout;
-            if([scrollLayout scrollDirection] == UICollectionViewScrollDirectionVertical) {
-                if (translatedCentre.y < (CGRectGetMinY(self.collectionView.bounds) + self.scrollingEdgeInsets.top)) {
-                    [self setupScrollTimerInDirection:_ScrollingDirectionUp];
-                }
-                else {
-                    if (translatedCentre.y > (CGRectGetMaxY(self.collectionView.bounds) - self.scrollingEdgeInsets.bottom)) {
-                        [self setupScrollTimerInDirection:_ScrollingDirectionDown];
+            
+            // Scroll when necessary
+            if (canScroll) {
+                UICollectionViewFlowLayout *scrollLayout = (UICollectionViewFlowLayout*)self.collectionView.collectionViewLayout;
+                if([scrollLayout scrollDirection] == UICollectionViewScrollDirectionVertical) {
+                    if (translatedCentre.y < (CGRectGetMinY(self.collectionView.bounds) + self.scrollingEdgeInsets.top)) {
+                        [self setupScrollTimerInDirection:_ScrollingDirectionUp];
                     }
                     else {
-                        [self invalidatesScrollTimer];
+                        if (translatedCentre.y > (CGRectGetMaxY(self.collectionView.bounds) - self.scrollingEdgeInsets.bottom)) {
+                            [self setupScrollTimerInDirection:_ScrollingDirectionDown];
+                        }
+                        else {
+                            [self invalidatesScrollTimer];
+                        }
                     }
                 }
             }
@@ -512,17 +605,35 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                     }
                 }
             }
+            
+            // Avoid warping a second time while scrolling
+            if (scrollingDirection > _ScrollingDirectionUnknown) {
+                return;
+            }
+            
+            // Warp item to finger location
+            CGPoint point = [sender locationInView:self.collectionView];
+            NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:point];
+            [self warpToIndexPath:indexPath];
+            
+            break;
         }
-        
-        // Avoid warping a second time while scrolling
-        if (scrollingDirection > _ScrollingDirectionUnknown) {
-            return;
+            
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateEnded:
+        {
+            if(self.layoutHelper.fromIndexPath != nil)
+            {
+                [self endDrag];
+            }
+            break;
         }
-        
-        // Warp item to finger location
-        CGPoint point = [sender locationInView:self.collectionView];
-        NSIndexPath *indexPath = [self indexPathForItemClosestToPoint:point];
-        [self warpToIndexPath:indexPath];
+            
+            
+        default:
+        {
+            break;
+        }
     }
 }
 

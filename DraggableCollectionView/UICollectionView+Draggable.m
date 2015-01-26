@@ -31,6 +31,16 @@ static const char * LSCollectionViewHelperObjectKey = "LSCollectionViewHelper";
     return helper;
 }
 
+- (BOOL)beginDragAt:(NSIndexPath*)indexPath
+{
+    return [[self getHelper] beginDragAt:indexPath];
+}
+
+- (void)endDrag
+{
+    [[self getHelper] endDrag];
+}
+
 - (BOOL)draggable
 {
     return [self getHelper].enabled;
@@ -39,6 +49,16 @@ static const char * LSCollectionViewHelperObjectKey = "LSCollectionViewHelper";
 - (void)setDraggable:(BOOL)draggable
 {
     [self getHelper].enabled = draggable;
+}
+
+- (BOOL)dragOnTouch
+{
+    return [self getHelper].dragOnTouch;
+}
+
+- (void)setDragOnTouch:(BOOL)dragOnTouch
+{
+    [self getHelper].dragOnTouch = dragOnTouch;
 }
 
 - (UIEdgeInsets)scrollingEdgeInsets

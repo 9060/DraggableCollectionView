@@ -12,14 +12,19 @@
 - (void)unbindFromCollectionView:(UICollectionView *)collectionView;
 
 @property (nonatomic, readonly, weak) UICollectionView *collectionView;
+- (BOOL)beginDragAt:(NSIndexPath*)indexPath;
+- (void)endDrag;
+
 @property (nonatomic, readonly) UIGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, readonly) UIGestureRecognizer *panPressGestureRecognizer;
 @property (nonatomic, assign) UIEdgeInsets scrollingEdgeInsets;
 @property (nonatomic, assign) CGFloat scrollingSpeed;
+@property (nonatomic, assign) BOOL dragOnTouch;
 @property (nonatomic, assign) BOOL enabled;
 @property (nonatomic, assign) BOOL stickyHeaders;
 
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point;
 - (NSIndexPath *)indexPathForItemClosestToPoint:(CGPoint)point mustBeValidMoveTarget:(BOOL)mustBeValidMoveTarget;
+
 
 @end
