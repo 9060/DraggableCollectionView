@@ -624,7 +624,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
         {
             if(self.layoutHelper.fromIndexPath != nil)
             {
-                [self endDrag];
+                [self endDrag:sender];
             }
             break;
         }
