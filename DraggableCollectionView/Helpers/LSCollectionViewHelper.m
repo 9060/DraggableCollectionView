@@ -485,7 +485,7 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
                 return;
             }
             
-            [self beginDragAt:indexPath];
+            [self beginDragAt:indexPath sender:sender];
             
         } break;
             
