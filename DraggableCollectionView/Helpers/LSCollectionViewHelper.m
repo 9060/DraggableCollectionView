@@ -542,9 +542,10 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
             {
                 id<UICollectionViewDataSource_DraggableWithExternalTarget> delegate = (id<UICollectionViewDataSource_DraggableWithExternalTarget>)self.collectionView.dataSource;
                 __block UIView *nextTargetView = nil;
-                CGPoint pt = [sender locationInView:self.collectionView.superview];
                 [[delegate externalTargetsForCollectionView:self.collectionView] enumerateObjectsUsingBlock:^(UIView *targetView, NSUInteger idx, BOOL *stop) {
-                    if (CGRectContainsPoint(targetView.frame, pt)) {
+                    CGPoint pt = [sender locationInView:targetView];
+                    CGRect bounds = targetView.bounds;
+                    if (CGRectContainsPoint(bounds, pt)) {
                         nextTargetView = targetView;
                         *stop = YES;
                     }
