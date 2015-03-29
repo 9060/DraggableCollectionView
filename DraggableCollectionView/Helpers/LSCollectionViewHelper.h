@@ -15,7 +15,7 @@
 - (BOOL)beginDragAt:(NSIndexPath*)indexPath;
 - (void)endDrag;
 
-@property (nonatomic, readonly) UIGestureRecognizer *longPressGestureRecognizer;
+@property (nonatomic, readonly) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, readonly) UIGestureRecognizer *panPressGestureRecognizer;
 @property (nonatomic, assign) UIEdgeInsets scrollingEdgeInsets;
 @property (nonatomic, assign) CGFloat scrollingSpeed;
