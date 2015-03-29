@@ -106,7 +106,8 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
 
     if (![(id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource
           collectionView:self.collectionView
-          canMoveItemAtIndexPath:indexPath])
+          canMoveItemAtIndexPath:indexPath
+          atPoint:[sender locationInView:nil]])
     {
         return NO;
     }
@@ -359,13 +360,13 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     id<UICollectionViewDataSource_Draggable> dataSource = (id<UICollectionViewDataSource_Draggable>)self.collectionView.dataSource;
     if (self.dragOnTouch
         && [gestureRecognizer isEqual:_longPressGestureRecognizer]
-        && [dataSource respondsToSelector:@selector(collectionView:canMoveItemAtIndexPath:)]) {
+        && [dataSource respondsToSelector:@selector(collectionView:canMoveItemAtIndexPath:atPoint:)]) {
 
         CGPoint pt = [touch locationInView:self.collectionView];
         NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:pt];
 
         if (indexPath) {
-            if ([dataSource collectionView:self.collectionView canMoveItemAtIndexPath:indexPath]) {
+            if ([dataSource collectionView:self.collectionView canMoveItemAtIndexPath:indexPath atPoint:[touch locationInView:nil]]) {
                 // Allow granular control on which taps will trigger.
                 if ([dataSource respondsToSelector:@selector(collectionView:shouldTouchBeginDrag:atIndexPath:)]) {
                     return [dataSource collectionView:self.collectionView shouldTouchBeginDrag:touch atIndexPath:indexPath];
@@ -681,8 +682,9 @@ typedef NS_ENUM(NSInteger, _ScrollingDirection) {
     }
     
     mockCenter  = _CGPointAdd(mockCenter, translation);
-    targetViewTranslation = _CGPointDiff(targetViewTranslation, translation);
-    mockCell.center = _CGPointAdd(_CGPointAdd(mockCenter, fingerTranslation), targetViewTranslation);
+    //targetViewTranslation = _CGPointDiff(translation, targetViewTranslation);
+    NSLog(@"%f", targetViewTranslation.y);
+    mockCell.center = _CGPointAdd(_CGPointAdd(mockCenter, fingerTranslation), translation);
     self.collectionView.contentOffset = _CGPointAdd(contentOffset, translation);
 
     // Warp items while scrolling
